@@ -4,9 +4,10 @@
 #include <iostream>
 #include <sys/select.h>
 #include <hector_uav_msgs/ThrustCommand.h>
+#include <csignal>
+
 
 double velocity_multiplier = 1.0;
-
 void velocity_commander(std::string& command,geometry_msgs::Twist& msg){
     char comm_descriptor;
     if(command.length()!=1)
@@ -45,20 +46,23 @@ void velocity_commander(std::string& command,geometry_msgs::Twist& msg){
         case 'b':
             velocity_multiplier -= 0.1;
             break;
-	case '.':
-	    msg.linear.x = 0; msg.linear.y = 0; msg.linear.z = 0;
-	    msg.angular.x = 0; msg.angular.y = 0; msg.angular.z = 0;
-	    break;
+	    case '.':
+	        msg.linear.x = 0; msg.linear.y = 0; msg.linear.z = 0;
+	        msg.angular.x = 0; msg.angular.y = 0; msg.angular.z = 0;
+	        break;
         default:
             ROS_INFO("Not a valid command! Proceeding with the latched twist");
 
     }
 }
+void killer(int signum){
+    exit(0);
+}
 int main(int argc,char** argv){
     ros::init(argc,argv,"keyboard_teleop");
     ros::NodeHandle nh;
     ros::Publisher pub_vel = nh.advertise<geometry_msgs::Twist>("/cmd_vel",10);
-
+    signal(SIGINT,killer);
     ros::ServiceClient enable_motors = nh.serviceClient<hector_uav_msgs::EnableMotors>("/enable_motors");
     hector_uav_msgs::EnableMotors srv;
     srv.request.enable = true;

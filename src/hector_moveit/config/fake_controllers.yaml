@@ -1,0 +1,4 @@
+controller_list:
+  - name: fake_DroneBody_controller
+    joints:
+      - virtual_joint

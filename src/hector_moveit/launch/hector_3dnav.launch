@@ -1,6 +1,7 @@
 <?xml version="1.0"?>
 
 <launch>
+  <node name="gazebo_killer" pkg="hector_moveit" type="gazebo_killer.sh"/>
   <arg name="use_ground_truth_for_tf" default="true"/>
   <arg name="headless" default="true"/>
   <arg name="use_gui" default="true"/>
@@ -32,7 +33,6 @@
   </node>
 
 
-<!--rosrun action_controller action_controller -->
  
   <include file="$(find hector_moveit)/launch/move_group.launch">
     <arg name="allow_trajectory_execution" value="true"/>

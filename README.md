@@ -6,4 +6,5 @@ In order to implement Motion Planning primitives, MoveIt! framework is being use
 
 ## References
 <a href="https://github.com/wilselby/ROS_quadrotor_simulator">ROS Quadrotor Simulator by Wil Selby</a>
+
 <a href="https://github.com/AlessioTonioni/Autonomous-Flight-ROS">Autonomous Flight by Alessio Tonioni</a>

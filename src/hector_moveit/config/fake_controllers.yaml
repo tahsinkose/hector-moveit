@@ -1,4 +1,5 @@
 controller_list:
-  - name: fake_DroneBody_controller
+  - name: multi_dof_joint_trajectory_simulation
+    default: true
     joints:
       - virtual_joint

@@ -29,7 +29,7 @@
   <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher" >
   	<param name="use_gui" value="false"/>
     <param name="publish_frequency" type="double" value="50.0" />
-    <rosparam param="source_list">[move_group/fake_controller_joint_states]</rosparam>
+    <rosparam param="source_list">[/move_group/fake_controller_joint_states]</rosparam>
   </node>
 
 

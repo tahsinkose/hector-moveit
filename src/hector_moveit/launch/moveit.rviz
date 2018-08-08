@@ -5,6 +5,7 @@ Panels:
     Property Tree Widget:
       Expanded:
         - /MotionPlanning1
+        - /MotionPlanning1/Planned Path1
         - /Image1
       Splitter Ratio: 0.742560029
     Tree Height: 240
@@ -102,7 +103,7 @@ Visualization Manager:
         Robot Color: 150; 50; 150
         Show Robot Collision: false
         Show Robot Visual: true
-        Show Trail: false
+        Show Trail: true
         State Display Time: 0.05 s
         Trail Step Size: 1
         Trajectory Topic: /move_group/display_planned_path
@@ -205,7 +206,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/XYOrbit
-      Distance: 25.4364967
+      Distance: 27.5440769
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.0599999987
         Stereo Focal Distance: 1
@@ -220,10 +221,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.00999999978
-      Pitch: 0.52520299
+      Pitch: 0.355203509
       Target Frame: base_link
       Value: XYOrbit (rviz)
-      Yaw: 1.09493887
+      Yaw: 3.22993875
     Saved: ~
 Window Geometry:
   Displays:

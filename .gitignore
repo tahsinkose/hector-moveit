@@ -30,6 +30,8 @@
 *.exe
 *.out
 *.app
+*.gv
+*.pdf
 
 build
 devel

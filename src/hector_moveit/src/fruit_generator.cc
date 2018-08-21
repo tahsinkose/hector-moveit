@@ -6,7 +6,7 @@
 
 #include <iostream>
 
-#define FRUIT_NUMBER 50
+#define TOTAL_FRUIT_NUMBER 120
 namespace gazebo
 {
   class FruitGenerator : public WorldPlugin
@@ -17,8 +17,17 @@ namespace gazebo
         const char *homedir;
         homedir = getenv("HOME");
         std::string home = homedir;
-        home.append("/.gazebo/models/oak_tree/meshes/oak_tree.dae");
+        home.append("/.gazebo/models/oak_tree/meshes/oak_tree.dae"); // Assume all trees are oak trees.
         common::Mesh* mesh = loader.Load(home);
+        std::vector<ignition::math::Vector3d> tree_origins;
+        auto models = _parent->Models();
+
+        for(auto m : models){
+            std::string model_name = m->GetName();
+            if(model_name.find("tree")!=std::string::npos)//It is a tree then
+                tree_origins.push_back(m->WorldPose().Pos());
+        }
+
         float* vertices;
         int* indices;
         vertices = (float *)malloc(sizeof(float) * mesh->GetVertexCount() * 3);
@@ -36,27 +45,36 @@ namespace gazebo
         
         std::vector<std::vector<float> > positions;
         for(int i=0;i<mesh->GetVertexCount()*3;i+=3){
-            if(vertices[i+2]>2.0 && vertices[i+2]<4.5){//Only consider the vertices higher than 2 meters
+            double planar_distance = sqrt(pow(vertices[i],2) + pow(vertices[i+1],2));
+            if(vertices[i+2]>2.0 && vertices[i+2]<4.5 && planar_distance < 2.0){//Only consider the vertices higher than 2 meters and lower than 4.5
+                // Also exclude the vertices too far than the tree root.
                 std::vector<float> position = {vertices[i],vertices[i+1],vertices[i+2]};
                 positions.push_back(position);
             }
         }
-        std::vector<int> random_indices(FRUIT_NUMBER,-1);//There exists 50 apples
-        for(int i=0;i<FRUIT_NUMBER;i++){
+        std::vector<int> random_indices(TOTAL_FRUIT_NUMBER,-1);//There exists 50 apples
+        for(int i=0;i<TOTAL_FRUIT_NUMBER;i++){
             int r;
             do{
-                r = rand() % FRUIT_NUMBER;
+                r = rand() % TOTAL_FRUIT_NUMBER;
             }while(std::find(random_indices.begin(),random_indices.end(),r)!=random_indices.end());
             random_indices[i] = r;
         }
         int cnt=0;
-        for(int i=0;i<FRUIT_NUMBER;i++){
+        for(int i=0;i<TOTAL_FRUIT_NUMBER;i++){
+            // Randomly choose which tree to assign the apple
+            int tree;
+            tree = rand() % tree_origins.size();
+            //std::cout<<"\033[1;32m Assigning to tree "<<tree<<"\033[0m\n";
+            int origx = tree_origins[tree].X();
+            int origy = tree_origins[tree].Y();
+            int origz = tree_origins[tree].Z();
             sdf::ElementPtr apple = appleSDF.Root()->GetElement("model");
             std::string tmp = model_name;
             tmp.append(std::to_string(cnt++));
             apple->GetAttribute("name")->SetFromString(tmp);
             apple->GetElement("pose")->Set(ignition::math::Pose3d(
-                            ignition::math::Vector3d(positions[random_indices[i]][0],positions[random_indices[i]][1],positions[random_indices[i]][2]),ignition::math::Quaternion<double>(0,0,0,1) ));
+                            ignition::math::Vector3d(origx + positions[random_indices[i]][0],origy + positions[random_indices[i]][1],origz + positions[random_indices[i]][2]),ignition::math::Quaternion<double>(0,0,0,1) ));
             _parent->InsertModelSDF(appleSDF);
         }
         free(vertices);

@@ -17,11 +17,14 @@ As Wil Selby had briefly illustrated in its <a href="https://www.wilselby.com/re
 
 In below, related papers are added for future reference. More will be added (hopefully) as project proceeds.
 
+---
+
 ### Scenarios
 #### Orchard fruit picking
 In order to have a particular aim for the project, some scenarios should be devised. For that purpose, a garden with apple trees is the first candidate. In that world, the drone first try to explore the space and then picks the fruits that it recognized. There will be Exploration, Image Recognition, Fruit Manipulation and Path Planning tasks in technical aspect. 
 
 After determining what to do, the next task was to develop (if there exists already, directly use) a proper world. Actually, there are a bunch of decent 3D models in the <a href="https://3dwarehouse.sketchup.com/">Sketchup Warehouse</a> with COLLADA extension. They are directly usable in the Gazebo environment. Unfortunately, all the trees with fruits have problematic rendering in Gazebo. Meaningly, only one fruit is being rendered and the others are not. I couldn't find any relevant bug, thus any fix. Even further, it might be a machine-dependent problem that only affects me. Nevertheless, I decided to come up with a work-around. That is, current implementation reads the mesh file attached to the tree model, fetchs all vertices and randomly cherry picks some fixed amount of them (in my case, it is 50). After extracting which positions to place apples, a Gazebo plugin dynamically spawns the apples into world. Despite the apples are generated non-perfectly (i.e. not perfectly aligned with branches), it produces a good approximation to a tree with fruits.
+
 ### References
 * <a href="https://ocw.mit.edu/courses/aeronautics-and-astronautics/16-412j-cognitive-robotics-spring-2005/projects/1aslam_blas_repo.pdf">SLAM for Dummies</a>
 

@@ -25,6 +25,8 @@ In order to have a particular aim for the project, some scenarios should be devi
 
 After determining what to do, the next task was to develop (if there exists already, directly use) a proper world. Actually, there are a bunch of decent 3D models in the <a href="https://3dwarehouse.sketchup.com/">Sketchup Warehouse</a> with COLLADA extension. They are directly usable in the Gazebo environment. Unfortunately, all the trees with fruits have problematic rendering in Gazebo. Meaningly, only one fruit is being rendered and the others are not. I couldn't find any relevant bug, thus any fix. Even further, it might be a machine-dependent problem that only affects me. Nevertheless, I decided to come up with a work-around. That is, current implementation reads the mesh file attached to the tree model, fetchs all vertices and randomly cherry picks some fixed amount of them (in my case, it is 50). After extracting which positions to place apples, a Gazebo plugin dynamically spawns the apples into world. Despite the apples are generated non-perfectly (i.e. not perfectly aligned with branches), it produces a good approximation to a tree with fruits.
 
+<img src="/images/garden1.jpg" alt="Garden View" width="435" height="435"/><img src="/images/garden2.jpg" alt="Garden View" width="435" height="435"/>
+<img src="/images/garden3.jpg" alt="Garden View"/>
 ### References
 * <a href="https://ocw.mit.edu/courses/aeronautics-and-astronautics/16-412j-cognitive-robotics-spring-2005/projects/1aslam_blas_repo.pdf">SLAM for Dummies</a>
 

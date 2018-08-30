@@ -27,7 +27,3 @@ target_link_libraries(move_quadrotor ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 target_link_libraries(keyboard_teleop ${catkin_LIBRARIES})
 add_dependencies(keyboard_teleop hector_uav_msgs_generate_messages)
 
-install(DIRECTORY
-  Media
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
-)

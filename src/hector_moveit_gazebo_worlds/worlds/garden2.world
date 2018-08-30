@@ -1,0 +1,42 @@
+<?xml version="1.0"?> 
+<sdf version="1.4">
+  <world name="default">
+
+    <!-- Ground Plane -->
+    <include>
+      <uri>model://ground_plane</uri>
+    </include>
+
+    <include>
+      <uri>model://sun</uri>
+    </include>
+    <population name="orchard">
+      <model name="apple_tree">
+        <include>
+          <static>true</static>
+          <uri>model://apple_tree</uri>
+        </include>
+      </model>
+      <pose>0 0 0 0 0 0</pose>
+      <distribution>
+        <type>grid</type>
+        <rows>4</rows>
+        <cols>4</cols>
+        <step>8 8 0</step>
+      </distribution>
+    </population>
+    <include>
+      <uri>model://orchard_ground</uri>
+    </include>
+    <include>
+      <uri>model://orchard_wall</uri>
+      <name>wall1</name>
+      <pose>0.56 16.05 0 0 0 0</pose>
+    </include>
+    <include>
+      <uri>model://orchard_wall</uri>
+      <name>wall2</name>
+      <pose>0.56 -16.05 0 0 0 0</pose>
+    </include>
+  </world>
+</sdf>

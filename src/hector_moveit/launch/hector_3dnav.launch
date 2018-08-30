@@ -8,7 +8,7 @@
   <arg name="debug" default="true" />
 
   <include file="$(find gazebo_ros)/launch/empty_world.launch">
-    <arg name="world_name" value="$(find hector_moveit)/worlds/garden.world"/>  
+    <arg name="world_name" value="$(find hector_moveit_gazebo_worlds)/worlds/garden2.world"/>  
     <arg name="debug" value="false" /> 
     <arg name="paused" value="false"/>
     <arg name="headless" value="$(arg headless)"/>

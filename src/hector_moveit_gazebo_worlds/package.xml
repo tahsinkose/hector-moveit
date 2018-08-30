@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<package>
+  <name>hector_moveit_gazebo_worlds</name>
+  <version>1.0.0</version>
+  <description>
+    The hector_moveit_gazebo_worlds package. Project hector_moveit uses the worlds residing in this package.
+    All custom models related to simulation are stored in here. Directly usable, no need any further environment variable setup.
+  </description>
+  <author email="tahsincankose@gmail.com">Tahsincan Köse</author>
+  <maintainer email="tahsincankose@gmail.com">Tahsincan Köse</maintainer>
+
+  <license>BSD</license>
+
+
+  
+  <buildtool_depend>catkin</buildtool_depend>
+  <run_depend>gazebo_ros</run_depend>
+
+  <export>
+    <gazebo_ros gazebo_model_path="${prefix}/Media/models"/>
+  </export>
+</package>

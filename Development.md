@@ -20,13 +20,24 @@ In below, related papers are added for future reference. More will be added (hop
 ---
 
 ### Scenarios
-#### Orchard fruit picking
+#### Orchard fruit picking with programmatic environment generation
 In order to have a particular aim for the project, some scenarios should be devised. For that purpose, a garden with apple trees is the first candidate. In that world, the drone first try to explore the space and then picks the fruits that it recognized. There will be Exploration, Image Recognition, Fruit Manipulation and Path Planning tasks in technical aspect. 
 
 After determining what to do, the next task was to develop (if there exists already, directly use) a proper world. Actually, there are a bunch of decent 3D models in the <a href="https://3dwarehouse.sketchup.com/">Sketchup Warehouse</a> with COLLADA extension. They are directly usable in the Gazebo environment. Unfortunately, all the trees with fruits have problematic rendering in Gazebo. Meaningly, only one fruit is being rendered and the others are not. I couldn't find any relevant bug, thus any fix. Even further, it might be a machine-dependent problem that only affects me. Nevertheless, I decided to come up with a work-around. That is, current implementation reads the mesh file attached to the tree model, fetchs all vertices and randomly cherry picks some fixed amount of them (in my case, it is 50). After extracting which positions to place apples, a Gazebo plugin dynamically spawns the apples into world. Despite the apples are generated non-perfectly (i.e. not perfectly aligned with branches), it produces a good approximation to a tree with fruits.
 
 <img src="/images/garden1.jpg" alt="Garden View" width="435" height="435"/><img src="/images/garden2.jpg" alt="Garden View" width="435" height="435"/>
 <img src="/images/garden3.jpg" alt="Garden View"/>
+
+#### Orchard fruit picking with static environment generation
+In order to avoid any confusion, static relates in here to simple world files, i.e. all the models seen in the environment (except the quadcopter) are generated beforehand through their declaration in the world file. This reduces a lot of complexity with respect to the above approach. However, the apples are not distinct entities in this case; so, fruit-picking might be more difficult. One work-around that I can thought of is to spawn instantaneous distinct apples at the location where a fruit is detected to be picked. 
+
+All the models and world files are separated into a brand-new package. Therefore, they can be used in any project with agricultural purposes. In future, it is aimed to create new ones particular to the tasks and improve current ones with further details. I mentioned about the problematic tree generation with fruits in the previous section. That's why I dived into Blender and created my own apple tree model and exported COLLADA file to use in Gazebo. One problem with the Blender COLLADA generation is that it drops transparency of meshes during exportation process. **[This is a global problem, many developers from the communities of Unity and other game development frameworks reported that, but I couldn't find a way out. Since I'm a too newbie to Blender and 3D modelling, I gave up and looked for work-arounds]**. Therefore all meshes of the tree had a black background. I have resolved that with the Gazebo's own transparency support. Even with a very small number (e.g. 1e-5), black background vanishes and all remains is the tree itself. Nevertheless, tree has a tiny amount of transparency that can be distinguished when looked from very close distance.
+
+<img src="/images/garden4.jpg" alt="Garden View" width="435" height="435"/><img src="/images/garden5.jpg" alt="Garden View" width="435" height="435"/>
+<img src="/images/garden6.jpg" alt="Garden View" width="435" height="435"/><img src="/images/garden7.jpg" alt="Garden View" width="435" height="435"/>
+
+Resolution of the trees might be a problem during the fruit detection. I will decide whether to increase the resolution of the model based on the accuracy of detection algorithm.
+
 ### References
 * <a href="https://ocw.mit.edu/courses/aeronautics-and-astronautics/16-412j-cognitive-robotics-spring-2005/projects/1aslam_blas_repo.pdf">SLAM for Dummies</a>
 

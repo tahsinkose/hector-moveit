@@ -1,7 +1,3 @@
-[submodule "src/hector_quadrotor"]
-	path = src/hector_quadrotor
-	url = https://github.com/tu-darmstadt-ros-pkg/hector_quadrotor.git
-	branch = kinetic-devel
 [submodule "src/hector_localization"]
 	path = src/hector_localization
 	url = https://github.com/tu-darmstadt-ros-pkg/hector_localization
@@ -9,4 +5,8 @@
 [submodule "src/hector_gazebo"]
 	path = src/hector_gazebo
 	url = https://github.com/tu-darmstadt-ros-pkg/hector_gazebo.git
+	branch = kinetic-devel
+[submodule "src/hector_models"]
+	path = src/hector_models
+	url = https://github.com/tu-darmstadt-ros-pkg/hector_models.git
 	branch = kinetic-devel

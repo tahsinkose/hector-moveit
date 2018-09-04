@@ -4,10 +4,10 @@ project(hector_moveit_config)
 set (CMAKE_CXX_STANDARD 11)
 
 find_package(catkin REQUIRED COMPONENTS 
-            roscpp moveit_core moveit_ros_planning_interface std_msgs hector_uav_msgs)
+            roscpp std_msgs hector_uav_msgs)
 
 
-catkin_package(CATKIN_DEPENDS roscpp moveit_core moveit_ros_planning_interface std_msgs hector_uav_msgs)
+catkin_package(CATKIN_DEPENDS roscpp std_msgs hector_uav_msgs)
 
 install(DIRECTORY launch DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
   PATTERN "setup_assistant.launch" EXCLUDE)
@@ -16,9 +16,7 @@ install(DIRECTORY config DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
 include_directories(include ${catkin_INCLUDE_DIRS})
 
 
-add_executable(move_quadrotor src/move_quadrotor.cpp)
 add_executable(keyboard_teleop src/keyboard_teleop.cpp)
-target_link_libraries(move_quadrotor ${catkin_LIBRARIES} ${Boost_LIBRARIES})
 target_link_libraries(keyboard_teleop ${catkin_LIBRARIES})
 add_dependencies(keyboard_teleop hector_uav_msgs_generate_messages)
 

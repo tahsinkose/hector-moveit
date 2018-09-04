@@ -7,6 +7,11 @@ In order to implement Motion Planning primitives, MoveIt! framework is being use
 ## What is New?
 The new thing is the usage of MoveIt! code API and implementation of several tasks in specific scenarios. Referenced projects and the several others not referenced directly but have similar context use only GUI. As known, despite being a moderately skilled one, MoveIt! GUI is there for just testing purposes. For those who seek industrial applications with a really complex architecture (e.g. several drones as swarms or teams, with image processing or machine learning modules), usage of code API is the inevitable task to consider. In that sense, this project possesses quite a big potential and aims to have a frontier role. Any who interested is greatly welcomed to contribute!
 
+## Simulation View
+<img src="/images/garden4.jpg" alt="Garden View" width="435" height="435"/><img src="/images/garden5.jpg" alt="Garden View" width="435" height="435"/>
+<img src="/images/garden6.jpg" alt="Garden View" width="435" height="435"/><img src="/images/garden7.jpg" alt="Garden View" width="435" height="435"/>
+
+In order to welcome newcomers, status quo of simulation is the best advertisement. For further detail, go to Development log.
 ## References
 <a href="https://github.com/wilselby/ROS_quadrotor_simulator">ROS Quadrotor Simulator by Wil Selby</a>
 

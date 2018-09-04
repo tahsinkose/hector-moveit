@@ -8,7 +8,7 @@
 
   <!-- Run -->
   <node pkg="moveit_setup_assistant" type="moveit_setup_assistant" name="moveit_setup_assistant"
-	args="--config_pkg=hector_moveit"
+	args="--config_pkg=hector_moveit_config"
 	launch-prefix="$(arg launch_prefix)"
         output="screen" />
 

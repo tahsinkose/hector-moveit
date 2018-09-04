@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<package>
+  <name>hector_moveit_gazebo</name>
+  <version>0.0.0</version>
+  <description>The hector_moveit_gazebo package</description>
+
+  <author email="tahsincankose@gmail.com">Tahsincan Köse</author>
+  <maintainer email="tahsincankose@gmail.com">Tahsincan Köse</maintainer>
+
+  <license>BSD</license>
+
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+</package>

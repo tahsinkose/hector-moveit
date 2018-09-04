@@ -15,6 +15,6 @@
   <param name="planning_plugin" value="$(arg planning_plugin)" />
   <param name="request_adapters" value="$(arg planning_adapters)" />
   <param name="start_state_max_bounds_error" value="$(arg start_state_max_bounds_error)" />
-  <rosparam command="load" file="$(find hector_moveit)/config/ompl_planning.yaml"/>
+  <rosparam command="load" file="$(find hector_moveit_config)/config/ompl_planning.yaml"/>
 
 </launch>

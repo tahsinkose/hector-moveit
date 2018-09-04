@@ -1,3 +1,0 @@
-<launch>
-	<rosparam command="load" file="$(find hector_moveit)/config/sensors_kinect.yaml" />
-</launch>

@@ -1,25 +1,20 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(hector_moveit)
+project(hector_moveit_config)
 
 set (CMAKE_CXX_STANDARD 11)
 
 find_package(catkin REQUIRED COMPONENTS 
-             roscpp pluginlib moveit_core moveit_ros_planning_interface std_msgs hector_uav_msgs)
+            roscpp moveit_core moveit_ros_planning_interface std_msgs hector_uav_msgs)
 
-find_package(gazebo REQUIRED)
 
-catkin_package(CATKIN_DEPENDS roscpp pluginlib moveit_core moveit_ros_planning_interface std_msgs hector_uav_msgs)
+catkin_package(CATKIN_DEPENDS roscpp moveit_core moveit_ros_planning_interface std_msgs hector_uav_msgs)
 
 install(DIRECTORY launch DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
   PATTERN "setup_assistant.launch" EXCLUDE)
 install(DIRECTORY config DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
 
-include_directories(include ${catkin_INCLUDE_DIRS} ${GAZEBO_INCLUDE_DIRS})
-link_directories(${GAZEBO_LIBRARY_DIRS})
-list(APPEND CMAKE_CXX_FLAGS "${GAZEBO_CXX_FLAGS}")
+include_directories(include ${catkin_INCLUDE_DIRS})
 
-add_library(fruit_generator SHARED src/fruit_generator.cc)
-target_link_libraries(fruit_generator ${GAZEBO_LIBRARIES})
 
 add_executable(move_quadrotor src/move_quadrotor.cpp)
 add_executable(keyboard_teleop src/keyboard_teleop.cpp)

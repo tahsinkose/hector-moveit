@@ -1,5 +1,0 @@
-<launch>
-    <node name="move_quadrotor" pkg="hector_moveit" type="move_quadrotor" respawn="false" output="screen">
-        <param name="/planning_plugin" value="ompl_interface/OMPLPlanner"/>
-    </node>
-</launch>

@@ -1,6 +1,6 @@
 <package>
 
-  <name>hector_moveit</name>
+  <name>hector_moveit_config</name>
   <version>1.0.0</version>
   <description>
      An automatically generated package with all the configuration and launch files for using the Hector quadrotor with the MoveIt! Motion Planning Framework
@@ -26,14 +26,12 @@
   <run_depend>xacro</run_depend>
 
   <build_depend>hector_quadrotor_description</build_depend>
-  <build_depend>pluginlib</build_depend>
   <build_depend>roscpp</build_depend>
   <build_depend>moveit_core</build_depend>
   <build_depend>moveit_ros_planning_interface</build_depend>
   <build_depend>std_msgs</build_depend>
   <build_depend>hector_uav_msgs</build_depend>
   <run_depend>hector_quadrotor_description</run_depend>
-  <run_depend>pluginlib</run_depend>
   <run_depend>roscpp</run_depend>
   <run_depend>moveit_core</run_depend>
   <run_depend>moveit_ros_planning_interface</run_depend>

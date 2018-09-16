@@ -11,6 +11,9 @@ The new thing is the usage of MoveIt! code API so as to implement a 3D autonomou
 <img src="/images/garden4.jpg" alt="Garden View" width="435" height="435"/><img src="/images/garden5.jpg" alt="Garden View" width="435" height="435"/>
 <img src="/images/garden6.jpg" alt="Garden View" width="435" height="435"/><img src="/images/garden7.jpg" alt="Garden View" width="435" height="435"/>
 
+### Exploration v1
+[![Orchard Exploration](http://img.youtube.com/vi/ZWn9N9Y_tb8/0.jpg)](https://www.youtube.com/watch?v=ZWn9N9Y_tb8 "Orchard Exploration")
+
 In order to welcome newcomers, status quo of simulation is the best advertisement. For further detail, go to Development log.
 ## References
 <a href="https://github.com/wilselby/ROS_quadrotor_simulator">ROS Quadrotor Simulator by Wil Selby</a>

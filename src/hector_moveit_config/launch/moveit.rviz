@@ -8,7 +8,7 @@ Panels:
         - /MotionPlanning1/Planned Path1
         - /Image1
       Splitter Ratio: 0.742560029
-    Tree Height: 240
+    Tree Height: 365
   - Class: rviz/Help
     Name: Help
   - Class: rviz/Views
@@ -67,6 +67,37 @@ Visualization Manager:
           Expand Link Details: false
           Expand Tree: false
           Link Tree Style: Links in Alphabetic Order
+          base_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          camera_depth_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          camera_depth_optical_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          camera_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          camera_rgb_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          camera_rgb_optical_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          sonar_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
         Loop Animation: false
         Robot Alpha: 0.5
         Robot Color: 150; 50; 150
@@ -112,12 +143,43 @@ Visualization Manager:
           Expand Link Details: false
           Expand Tree: false
           Link Tree Style: Links in Alphabetic Order
+          base_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          camera_depth_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          camera_depth_optical_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          camera_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          camera_rgb_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          camera_rgb_optical_frame:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+          sonar_link:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
         Robot Alpha: 1
         Show Robot Collision: false
         Show Robot Visual: true
       Value: true
     - Class: rviz/Image
-      Enabled: false
+      Enabled: true
       Image Topic: /camera/rgb/image_raw
       Max Value: 1
       Median window: 5
@@ -127,7 +189,7 @@ Visualization Manager:
       Queue Size: 2
       Transport Hint: raw
       Unreliable: false
-      Value: false
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -144,7 +206,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/XYOrbit
-      Distance: 27.5440769
+      Distance: 16.518055
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.0599999987
         Stereo Focal Distance: 1
@@ -159,10 +221,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.00999999978
-      Pitch: 0.355203509
+      Pitch: 0.504796743
       Target Frame: base_link
       Value: XYOrbit (rviz)
-      Yaw: 3.22993875
+      Yaw: 3.89312911
     Saved: ~
 Window Geometry:
   Displays:
@@ -178,7 +240,7 @@ Window Geometry:
     collapsed: false
   MotionPlanning - Trajectory Slider:
     collapsed: false
-  QMainWindow State: 000000ff00000000fd0000000100000000000002ad000003dafc020000000cfb000000100044006900730070006c006100790073010000002800000131000000d700fffffffb0000000800480065006c00700000000342000000bb0000007300fffffffb0000000a0056006900650077007300000003b0000000b0000000ad00fffffffb0000000c00430061006d00650072006100000002ff000001610000000000000000fb0000001e004d006f00740069006f006e00200050006c0061006e006e0069006e00670100000374000001890000000000000000fb00000044004d006f00740069006f006e0050006c0061006e006e0069006e00670020002d0020005400720061006a006500630074006f0072007900200053006c0069006400650072010000015f000000690000004a00fffffffb0000001c004d006f00740069006f006e0050006c0061006e006e0069006e006701000001ce000002340000018e00fffffffb0000001c004d006f00740069006f006e0050006c0061006e006e0069006e006701000002590000018c0000000000000000fb0000001c004d006f00740069006f006e0050006c0061006e006e0069006e006701000002760000018c0000000000000000fb000000280020002d0020005400720061006a006500630074006f0072007900200053006c00690064006500720000000000ffffffff0000000000000000fb0000001c004d006f00740069006f006e0050006c0061006e006e0069006e006701000002760000018c0000000000000000fb0000000a0049006d00610067006502000004a300000027000002ad0000023d0000048c000003da00000001000000020000000100000002fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  QMainWindow State: 000000ff00000000fd0000000100000000000002ad000003dafc020000000cfb0000000a0049006d0061006700650100000028000002260000001600fffffffb000000100044006900730070006c0061007900730100000254000001ae000000d700fffffffb0000000800480065006c00700000000342000000bb0000007300fffffffb0000000a0056006900650077007300000003b0000000b0000000ad00fffffffb0000000c00430061006d00650072006100000002ff000001610000000000000000fb0000001e004d006f00740069006f006e00200050006c0061006e006e0069006e00670100000374000001890000000000000000fb00000044004d006f00740069006f006e0050006c0061006e006e0069006e00670020002d0020005400720061006a006500630074006f0072007900200053006c00690064006500720000000307000000fb0000001600000016fb0000001c004d006f00740069006f006e0050006c0061006e006e0069006e006700000001ce000002340000018300fffffffb0000001c004d006f00740069006f006e0050006c0061006e006e0069006e006701000002590000018c0000000000000000fb0000001c004d006f00740069006f006e0050006c0061006e006e0069006e006701000002760000018c0000000000000000fb000000280020002d0020005400720061006a006500630074006f0072007900200053006c00690064006500720000000000ffffffff0000000000000000fb0000001c004d006f00740069006f006e0050006c0061006e006e0069006e006701000002760000018c00000000000000000000048c000003da00000001000000020000000100000002fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
   Views:
     collapsed: false
   Width: 1855

@@ -4,16 +4,18 @@
 #include <moveit/robot_model_loader/robot_model_loader.h>
 #include <moveit/move_group_interface/move_group_interface.h>
 #include <moveit/planning_scene_interface/planning_scene_interface.h>
-
+#include <moveit/planning_scene/planning_scene.h>
 #include <geometry_msgs/Pose.h>
 #include <nav_msgs/Odometry.h>
-#include <moveit_msgs/DisplayTrajectory.h>
 
+#include <moveit_msgs/DisplayTrajectory.h>
+#include <moveit_msgs/GetPlanningScene.h>
 #include <actionlib/client/simple_action_client.h>
 #include <actionlib/client/simple_client_goal_state.h>
 
 #include <hector_uav_msgs/EnableMotors.h>
 #include <hector_uav_msgs/PoseAction.h>
+
 #define XMIN -24.5
 #define XMAX 24.5
 #define YMIN -16
@@ -26,26 +28,28 @@ class Quadrotor{
         std::unique_ptr<moveit::planning_interface::MoveGroupInterface> move_group;
         actionlib::SimpleActionClient<hector_uav_msgs::PoseAction> pose_client;
         std::unique_ptr<robot_state::RobotState> start_state;
+        std::unique_ptr<planning_scene::PlanningScene> planning_scene;
         const double takeoff_altitude = 1.0;
 
         bool odom_received,trajectory_received;
-        std::vector<double> odometry_information;
+        geometry_msgs::Pose odometry_information;
         std::vector<geometry_msgs::Pose> trajectory;
+        std::vector<geometry_msgs::Pose> orchard_points;
         ros::Subscriber base_sub,plan_sub;
         ros::ServiceClient motor_enable_service; 
+        ros::ServiceClient planning_scene_service;
+
+        moveit_msgs::RobotState plan_start_state;
+        moveit_msgs::RobotTrajectory plan_trajectory;
+
+        const std::string PLANNING_GROUP = "DroneBody";
 
         void poseCallback(const nav_msgs::Odometry::ConstPtr & msg)
         {
-            odometry_information[0] = msg->pose.pose.position.x;
-            odometry_information[1] = msg->pose.pose.position.y;
-            odometry_information[2] = msg->pose.pose.position.z;
-
-            odometry_information[3] = msg->pose.pose.orientation.x;
-            odometry_information[4] = msg->pose.pose.orientation.y;
-            odometry_information[5] = msg->pose.pose.orientation.z;
-            odometry_information[6] = msg->pose.pose.orientation.w;
+            odometry_information = msg->pose.pose;
             odom_received = true;
         }
+        
         void planCallback(const moveit_msgs::DisplayTrajectory::ConstPtr& msg)
         {
             if(!odom_received) return;
@@ -67,45 +71,109 @@ class Quadrotor{
             }
             trajectory_received = true;
         }
-        void go(std::vector<double>& target){
-            move_group->setJointValueTarget(target);
+
+        void collisionCallback(){
+            ROS_INFO("Current position: %lf,%lf,%lf",odometry_information.position.x,odometry_information.position.y,odometry_information.position.z);
+            moveit_msgs::GetPlanningScene srv;
+            srv.request.components.components = moveit_msgs::PlanningSceneComponents::OCTOMAP;
+            
+            if(planning_scene_service.call(srv)){
+                this->planning_scene->setPlanningSceneMsg(srv.response.scene);
+                bool isPathValid = this->planning_scene->isPathValid(plan_start_state,plan_trajectory,PLANNING_GROUP);
+                if(!isPathValid){
+                    this->move_group->stop();
+                    ROS_INFO("Trajectory is now in collision with the world");
+                }
+            }
+
+            
+        }
+        bool go(geometry_msgs::Pose& target_){
+            std::vector<double> target(7);
+            target[0] = target_.position.x;
+            target[1] = target_.position.y;
+            target[2] = target_.position.z;
+            target[3] = target_.orientation.x;
+            target[4] = target_.orientation.y;
+            target[5] = target_.orientation.z;
+            target[6] = target_.orientation.w;
+            
+            std::vector<double> start_state_(7);
+            start_state_[0] = odometry_information.position.x;
+            start_state_[1] = odometry_information.position.y;
+            start_state_[2] = odometry_information.position.z;
+            start_state_[3] = odometry_information.orientation.x;
+            start_state_[4] = odometry_information.orientation.y;
+            start_state_[5] = odometry_information.orientation.z;
+            start_state_[6] = odometry_information.orientation.w;
+            
+            this->move_group->setJointValueTarget(target);
             moveit::planning_interface::MoveGroupInterface::Plan plan;
             
-            start_state->setVariablePositions(odometry_information);
-            move_group->setStartState(*start_state);
+            ROS_INFO("Try to start from [%lf,%lf,%lf]",odometry_information.position.x,odometry_information.position.y,odometry_information.position.z);
+            ROS_INFO("Try to go to [%lf,%lf,%lf]",target_.position.x,target_.position.y,target_.position.z);
+            this->start_state->setVariablePositions(start_state_);
+            this->move_group->setStartState(*start_state);
+
             bool success = (move_group->plan(plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
-            ROS_INFO_NAMED("Trial", "%s", success ? "SUCCESS" : "FAILED");
-            while(!trajectory_received)
-                ;
-            hector_uav_msgs::PoseGoal goal;
-            goal.target_pose.header.frame_id = "world";
-            for(auto waypoint : trajectory){
-                goal.target_pose.pose = waypoint;
-                pose_client.sendGoal(goal);
-                pose_client.waitForResult();
+            if(success){
+                ROS_INFO_NAMED("Trial", "%s", success ? "SUCCESS" : "FAILED");
+                this->plan_start_state = plan.start_state_;
+                this->plan_trajectory = plan.trajectory_;
+                while(!trajectory_received)
+                    ;
+                hector_uav_msgs::PoseGoal goal;
+                goal.target_pose.header.frame_id = "world";
+                for(auto waypoint : trajectory){
+                    goal.target_pose.pose = waypoint;
+                    pose_client.sendGoal(goal,actionlib::SimpleActionClient<hector_uav_msgs::PoseAction>::SimpleDoneCallback(),
+                                        boost::bind(&Quadrotor::collisionCallback,this),
+                                        actionlib::SimpleActionClient<hector_uav_msgs::PoseAction>::SimpleFeedbackCallback());
+                    pose_client.waitForResult();
+                }
+                this->trajectory_received = false;
+                this->odom_received = false;
             }
-            trajectory_received = false;
+            return success;
         }
     public:
-        Quadrotor(const std::string PLANNING_GROUP,ros::NodeHandle& nh) : pose_client("/action/pose",true)
+        Quadrotor(ros::NodeHandle& nh) : pose_client("/action/pose",true)
         {
             pose_client.waitForServer();
-            odometry_information.resize(7);
             odom_received = false;
             trajectory_received = false;
+            std::vector<double> xlimits = {XMIN,XMAX};
+            std::vector<double> ylimits = {YMIN,YMAX};
+            std::vector<double> zlimits = {ZMIN,ZMAX};
+            for(int i=0;i<2;i++)
+                for(int j=0;j<2;j++)
+                    for(int k=0;k<2;k++){
+                        geometry_msgs::Pose corner;
+                        corner.position.x = xlimits[i];
+                        corner.position.y = ylimits[j];
+                        corner.position.z = zlimits[k];
+                        corner.orientation.w = 1;
+
+                        orchard_points.push_back(corner);
+                    }
+
             base_sub = nh.subscribe<nav_msgs::Odometry>("/ground_truth/state",10,&Quadrotor::poseCallback,this);
             plan_sub = nh.subscribe<moveit_msgs::DisplayTrajectory>("/move_group/display_planned_path",1,&Quadrotor::planCallback,this);
 
             move_group.reset(new moveit::planning_interface::MoveGroupInterface(PLANNING_GROUP));
             robot_model_loader::RobotModelLoader robot_model_loader("robot_description");
             robot_model::RobotModelPtr kmodel = robot_model_loader.getModel();
-
+            
             motor_enable_service = nh.serviceClient<hector_uav_msgs::EnableMotors>("enable_motors");
+            planning_scene_service = nh.serviceClient<moveit_msgs::GetPlanningScene>("get_planning_scene");
+
             move_group->setPlannerId("RRTConnectkConfigDefault");
             move_group->setNumPlanningAttempts(10);
             move_group->setWorkspace(-50,-50,-50,50,50,50);
             
             start_state.reset(new robot_state::RobotState(move_group->getRobotModel()));
+            planning_scene.reset(new planning_scene::PlanningScene(kmodel));
+            
         }
         void takeoff()
         {
@@ -114,15 +182,23 @@ class Quadrotor{
             motor_enable_service.call(srv);
             while(!odom_received)
                 ;
-            std::vector<double> takeoff_pose = odometry_information;
-            takeoff_pose[2] = takeoff_altitude;
+            geometry_msgs::Pose takeoff_pose = odometry_information;
+            takeoff_pose.position.z = takeoff_altitude;
             go(takeoff_pose);
             ROS_INFO("Takeoff successful");
         }
         void run()
         {
+            ros::Rate rate(2);
             while(ros::ok()){
-                ros::spinOnce();
+                while(!odom_received)
+                    ;
+                for(int i=0;i<orchard_points.size();i++){
+                    while(!go(orchard_points[i])){ //Send until reached to the specified point.
+                        ros::spinOnce();
+                        rate.sleep();
+                    }
+                }
             }
             
         }
@@ -137,8 +213,8 @@ int main(int argc, char** argv)
     ros::AsyncSpinner spinner(1);
     spinner.start();
     ros::NodeHandle node_handle("~");
-    const std::string PLANNING_GROUP = "DroneBody";
-    Quadrotor quad(PLANNING_GROUP,std::ref(node_handle));
+    
+    Quadrotor quad(std::ref(node_handle));
     quad.takeoff();
     quad.run();
     return 0;

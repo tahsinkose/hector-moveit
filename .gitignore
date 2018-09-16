@@ -36,3 +36,5 @@
 build
 devel
 .vscode
+src/rosconsole
+src/roscpp

@@ -5,16 +5,21 @@
 #include <moveit/move_group_interface/move_group_interface.h>
 #include <moveit/planning_scene_interface/planning_scene_interface.h>
 #include <moveit/planning_scene/planning_scene.h>
+
 #include <geometry_msgs/Pose.h>
 #include <nav_msgs/Odometry.h>
+#include <octomap_msgs/conversions.h>
 
 #include <moveit_msgs/DisplayTrajectory.h>
 #include <moveit_msgs/GetPlanningScene.h>
+
 #include <actionlib/client/simple_action_client.h>
 #include <actionlib/client/simple_client_goal_state.h>
 
 #include <hector_uav_msgs/EnableMotors.h>
 #include <hector_uav_msgs/PoseAction.h>
+
+#include <octomap/OcTree.h>
 
 #define XMIN -24.5
 #define XMAX 24.5
@@ -32,6 +37,7 @@ class Quadrotor{
         const double takeoff_altitude = 1.0;
 
         bool odom_received,trajectory_received;
+        bool isPathValid;
         geometry_msgs::Pose odometry_information;
         std::vector<geometry_msgs::Pose> trajectory;
         std::vector<geometry_msgs::Pose> orchard_points;
@@ -49,7 +55,7 @@ class Quadrotor{
             odometry_information = msg->pose.pose;
             odom_received = true;
         }
-        
+
         void planCallback(const moveit_msgs::DisplayTrajectory::ConstPtr& msg)
         {
             if(!odom_received) return;
@@ -73,22 +79,30 @@ class Quadrotor{
         }
 
         void collisionCallback(){
-            ROS_INFO("Current position: %lf,%lf,%lf",odometry_information.position.x,odometry_information.position.y,odometry_information.position.z);
             moveit_msgs::GetPlanningScene srv;
             srv.request.components.components = moveit_msgs::PlanningSceneComponents::OCTOMAP;
             
             if(planning_scene_service.call(srv)){
-                this->planning_scene->setPlanningSceneMsg(srv.response.scene);
-                bool isPathValid = this->planning_scene->isPathValid(plan_start_state,plan_trajectory,PLANNING_GROUP);
+                this->planning_scene->setPlanningSceneDiffMsg(srv.response.scene);
+                /*octomap_msgs::Octomap octomap = srv.response.scene.world.octomap.octomap;
+                octomap::OcTree* current_map = (octomap::OcTree*)octomap_msgs::msgToMap(octomap);
+                current_map->writeBinary("/home/tahsincan/tree.bt");
+                ROS_INFO("Saving the tree");*/
+                std::vector<size_t> invalid_indices;
+                this->isPathValid = this->planning_scene->isPathValid(plan_start_state,plan_trajectory,PLANNING_GROUP,true,&invalid_indices);
+                
                 if(!isPathValid){
-                    this->move_group->stop();
+                    //TODO: this->move_group->stop(); When migrating to complete MoveIt! ExecuteService, this will work as expected.
+                    this->pose_client.cancelGoal();
                     ROS_INFO("Trajectory is now in collision with the world");
                 }
             }
-
-            
+            else
+                ROS_INFO("Couldn't fetch the planning scene");
         }
+
         bool go(geometry_msgs::Pose& target_){
+            
             std::vector<double> target(7);
             target[0] = target_.position.x;
             target[1] = target_.position.y;
@@ -115,9 +129,9 @@ class Quadrotor{
             this->start_state->setVariablePositions(start_state_);
             this->move_group->setStartState(*start_state);
 
-            bool success = (move_group->plan(plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
-            if(success){
-                ROS_INFO_NAMED("Trial", "%s", success ? "SUCCESS" : "FAILED");
+            this->isPathValid = (move_group->plan(plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
+            if(this->isPathValid){
+                
                 this->plan_start_state = plan.start_state_;
                 this->plan_trajectory = plan.trajectory_;
                 while(!trajectory_received)
@@ -125,7 +139,9 @@ class Quadrotor{
                 hector_uav_msgs::PoseGoal goal;
                 goal.target_pose.header.frame_id = "world";
                 for(auto waypoint : trajectory){
+                    if(!this->isPathValid) break;
                     goal.target_pose.pose = waypoint;
+                    ROS_INFO("Next orientation [%lf,%lf,%lf,%lf]",waypoint.orientation.x,waypoint.orientation.y,waypoint.orientation.z,waypoint.orientation.w);
                     pose_client.sendGoal(goal,actionlib::SimpleActionClient<hector_uav_msgs::PoseAction>::SimpleDoneCallback(),
                                         boost::bind(&Quadrotor::collisionCallback,this),
                                         actionlib::SimpleActionClient<hector_uav_msgs::PoseAction>::SimpleFeedbackCallback());
@@ -134,7 +150,7 @@ class Quadrotor{
                 this->trajectory_received = false;
                 this->odom_received = false;
             }
-            return success;
+            return this->isPathValid;
         }
     public:
         Quadrotor(ros::NodeHandle& nh) : pose_client("/action/pose",true)
@@ -148,10 +164,13 @@ class Quadrotor{
             for(int i=0;i<2;i++)
                 for(int j=0;j<2;j++)
                     for(int k=0;k<2;k++){
+                        double x_offset = (i==0 ? 0.5 : -0.5);
+                        double y_offset = (j==0 ? 0.5 : -0.5);
+                        double z_offset = (k==0 ? 0.5 : -0.5);
                         geometry_msgs::Pose corner;
-                        corner.position.x = xlimits[i];
-                        corner.position.y = ylimits[j];
-                        corner.position.z = zlimits[k];
+                        corner.position.x = xlimits[i] + x_offset;
+                        corner.position.y = ylimits[j] + y_offset;
+                        corner.position.z = zlimits[k] + z_offset;
                         corner.orientation.w = 1;
 
                         orchard_points.push_back(corner);
@@ -164,12 +183,12 @@ class Quadrotor{
             robot_model_loader::RobotModelLoader robot_model_loader("robot_description");
             robot_model::RobotModelPtr kmodel = robot_model_loader.getModel();
             
-            motor_enable_service = nh.serviceClient<hector_uav_msgs::EnableMotors>("enable_motors");
-            planning_scene_service = nh.serviceClient<moveit_msgs::GetPlanningScene>("get_planning_scene");
+            motor_enable_service = nh.serviceClient<hector_uav_msgs::EnableMotors>("/enable_motors");
+            planning_scene_service = nh.serviceClient<moveit_msgs::GetPlanningScene>("/get_planning_scene");
 
             move_group->setPlannerId("RRTConnectkConfigDefault");
             move_group->setNumPlanningAttempts(10);
-            move_group->setWorkspace(-50,-50,-50,50,50,50);
+            move_group->setWorkspace(-50,-50,0,50,50,ZMAX);
             
             start_state.reset(new robot_state::RobotState(move_group->getRobotModel()));
             planning_scene.reset(new planning_scene::PlanningScene(kmodel));

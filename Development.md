@@ -38,6 +38,19 @@ All the models and world files are separated into a brand-new package. Therefore
 
 Resolution of the trees might be a problem during the fruit detection. I will decide whether to increase the resolution of the model based on the accuracy of detection algorithm.
 
+---
+### Exploration
+
+After the simulation environments are ready, first goal was to properly, safely and of course autonomously navigate in the orchard so as to map it comprehensively. Current architecture uses MoveIt! and <a href="http://docs.ros.org/kinetic/api/hector_quadrotor_actions/html/classhector__quadrotor__actions_1_1PoseActionServer.html">Pose Action Server</a> for simultaneous planning and mapping. MoveIt! has a simple motion planning pipeline that can be used to integrate Octomap data generated via Kinect2 Pointcloud input and motion planner plugins provided by OMPL. Furthermore, one can also implement an Execute Path Service plugin as a controller that MoveIt! can talk to. For now, I only use the planners to extract valid paths to the goal state and feed them into Pose Action Server special to the Hector Quadcopter platform. In future, I'm aiming to provide a generic controller than can generalize over different platforms.
+
+#### Version 1
+[![Orchard Exploration](http://img.youtube.com/vi/ZWn9N9Y_tb8/0.jpg)](https://www.youtube.com/watch?v=ZWn9N9Y_tb8 "Orchard Exploration") As it can be seen, it successfully replans after noticing the obstacles popped out in the path of latched trajectory. It is definitely a dynamic collision avoidance routine and can respond under 1 second. My aim for version 2 is to implement:
+* An orientation fixer for the Quadcopter. Since Kinect (or any other stereo camera) does not have 360 degree of FOV, the velocity vector and the orientation of the camera should be equal. Otherwise, drone might not see its front exactly; thus couldn’t notice the obstacle in front and thinks the latched trajectory is still valid, whereas it isn’t.
+
+* A velocity controller or directly using existing alternatives, if any. By this, motions will be much smoother with respect to position control.
+
+* A Frontier approach that determines the next goal from extracted frontiers. Currently, the goals are hardcoded in a way that traverses the faces and corners of the rectangular volume.
+
 ### References
 * <a href="https://ocw.mit.edu/courses/aeronautics-and-astronautics/16-412j-cognitive-robotics-spring-2005/projects/1aslam_blas_repo.pdf">SLAM for Dummies</a>
 

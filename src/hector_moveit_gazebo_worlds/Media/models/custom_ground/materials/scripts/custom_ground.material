@@ -1,0 +1,38 @@
+material CustomGround/Grass
+{
+    technique
+    {
+    pass
+    {
+        ambient 1 1 1 1.000000
+        diffuse 1 1 1 1.000000
+        specular 0.03 0.03 0.03 1.000000 
+
+        texture_unit
+        {
+            texture grass.jpg
+            scale .1 .1
+        }
+    }
+    }
+}
+
+material CustomGround/GrassDiffuseSpecular
+{
+    technique
+    {
+        pass
+        {
+            ambient 1 1 1 1.000000
+            diffuse 1 1 1 1.000000
+            specular 0.03 0.03 0.03 1.000000 
+
+            texture_unit
+            {
+                texture grass_diffusespecular.png
+                filtering bilinear
+                scale .1 .1
+            }
+        }
+    } 
+}

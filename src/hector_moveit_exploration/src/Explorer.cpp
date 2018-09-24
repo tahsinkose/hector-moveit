@@ -1,8 +1,8 @@
 #include <Explorer.h>
 
-Quadrotor::Quadrotor(ros::NodeHandle& nh) : pose_client("/action/pose",true)
+Quadrotor::Quadrotor(ros::NodeHandle& nh) : trajectory_client("/action/trajectory",true)
 {
-    pose_client.waitForServer();
+    trajectory_client.waitForServer();
     odom_received = false;
     trajectory_received = false;
     std::vector<double> xlimits = {XMIN,XMAX};
@@ -71,7 +71,7 @@ void Quadrotor::planCallback(const moveit_msgs::DisplayTrajectory::ConstPtr& msg
     trajectory_received = true;
 }
 
-void Quadrotor::collisionCallback()
+void Quadrotor::collisionCallback(const hector_moveit_actions::ExecuteDroneTrajectoryFeedbackConstPtr& feedback)
 {
     moveit_msgs::GetPlanningScene srv;
     srv.request.components.components = moveit_msgs::PlanningSceneComponents::OCTOMAP;
@@ -86,7 +86,7 @@ void Quadrotor::collisionCallback()
         
         if(!isPathValid){
             //TODO: this->move_group->stop(); When migrating to complete MoveIt! ExecuteService, this will work as expected.
-            this->pose_client.cancelGoal();
+            this->trajectory_client.cancelGoal();
             ROS_INFO("Trajectory is now in collision with the world");
         }
     }
@@ -121,7 +121,17 @@ bool Quadrotor::go(geometry_msgs::Pose& target_)
     ROS_INFO("Try to go to [%lf,%lf,%lf]",target_.position.x,target_.position.y,target_.position.z);
     this->start_state->setVariablePositions(start_state_);
     this->move_group->setStartState(*start_state);
-
+    moveit_msgs::OrientationConstraint ocm;
+    ocm.link_name = "camera_link";
+    ocm.header.frame_id = "base_link";
+    ocm.orientation.w = 1.0;
+    ocm.absolute_x_axis_tolerance = 0.1;
+    ocm.absolute_y_axis_tolerance = 0.1;
+    ocm.absolute_z_axis_tolerance = 0.1;
+    ocm.weight = 1.0;
+    moveit_msgs::Constraints constraints;
+    constraints.orientation_constraints.push_back(ocm);
+    move_group->setPathConstraints(constraints);
     this->isPathValid = (move_group->plan(plan) == moveit::planning_interface::MoveItErrorCode::SUCCESS);
     if(this->isPathValid){
         
@@ -129,32 +139,33 @@ bool Quadrotor::go(geometry_msgs::Pose& target_)
         this->plan_trajectory = plan.trajectory_;
         while(!trajectory_received)
             ;
-        hector_uav_msgs::PoseGoal goal;
-        goal.target_pose.header.frame_id = "world";
+        hector_moveit_actions::ExecuteDroneTrajectoryGoal goal;
+        
         for(int i=0;i<trajectory.size();i++){
-            if(!this->isPathValid) break;
-            geometry_msgs::Pose waypoint = trajectory[i];
             
             if(i+1<trajectory.size()){
                 geometry_msgs::Pose next_waypoint = trajectory[i+1];
-                double y_diff = next_waypoint.position.y - waypoint.position.y;
-                double x_diff = next_waypoint.position.x - waypoint.position.x;
-                if(fabs(y_diff)>EPSILON || fabs(x_diff)>EPSILON){ //Prevent 0 division
-                    double yaw = atan2(y_diff,x_diff);
+                double y_diff = next_waypoint.position.y - trajectory[i].position.y;
+                double x_diff = next_waypoint.position.x - trajectory[i].position.x;
+                double yaw = atan2(y_diff,x_diff);
+                
+                if(fabs(y_diff)>EPSILON || fabs(x_diff)>EPSILON ){ //Prevent 0 division
+                    
                     tf::Quaternion q = tf::createQuaternionFromYaw(yaw+M_PI);
-                    waypoint.orientation.x = q.x();
-                    waypoint.orientation.y = q.y();
-                    waypoint.orientation.z = q.z();
-                    waypoint.orientation.w = q.w();
-                    ROS_INFO("Next orientation yaw = %lf",yaw+M_PI);
+                    trajectory[i].orientation.x = q.x();
+                    trajectory[i].orientation.y = q.y();
+                    trajectory[i].orientation.z = q.z();
+                    trajectory[i].orientation.w = q.w();
                 }
+                goal.trajectory.push_back(trajectory[i]);
             }
-            goal.target_pose.pose = waypoint;
-            pose_client.sendGoal(goal,actionlib::SimpleActionClient<hector_uav_msgs::PoseAction>::SimpleDoneCallback(),
-                                boost::bind(&Quadrotor::collisionCallback,this),
-                                actionlib::SimpleActionClient<hector_uav_msgs::PoseAction>::SimpleFeedbackCallback());
-            pose_client.waitForResult();
-        }
+        }    
+        ROS_INFO("Send Trajectory Goal");
+        trajectory_client.sendGoal(goal,actionlib::SimpleActionClient<hector_moveit_actions::ExecuteDroneTrajectoryAction>::SimpleDoneCallback(),
+                            actionlib::SimpleActionClient<hector_moveit_actions::ExecuteDroneTrajectoryAction>::SimpleActiveCallback(),
+                            boost::bind(&Quadrotor::collisionCallback,this,_1));
+        trajectory_client.waitForResult();
+        ROS_INFO("Trajectory is traversed");
         this->trajectory_received = false;
         this->odom_received = false;
     }

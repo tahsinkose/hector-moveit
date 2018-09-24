@@ -1,4 +1,5 @@
 <launch>
+    <node name="trajectory_executer" pkg="hector_moveit_actions" type="trajectory_executer" respawn="false" output="screen"/>
     <node name="hector_explorer" pkg="hector_moveit_exploration" type="hector_explorer" respawn="false" output="screen" launch-prefix="gdb -ex run --args">
         <param name="/planning_plugin" value="ompl_interface/OMPLPlanner"/>
     </node>

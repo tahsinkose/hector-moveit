@@ -15,10 +15,9 @@
 #include <moveit_msgs/GetPlanningScene.h>
 
 #include <actionlib/client/simple_action_client.h>
-#include <actionlib/client/simple_client_goal_state.h>
 
 #include <hector_uav_msgs/EnableMotors.h>
-#include <hector_uav_msgs/PoseAction.h>
+#include <hector_moveit_actions/ExecuteDroneTrajectoryAction.h>
 
 #include <octomap/OcTree.h>
 
@@ -33,10 +32,11 @@
 #define ZMAX 4.0
 
 #define EPSILON 1e-4
+
 class Quadrotor{
     private:
         std::unique_ptr<moveit::planning_interface::MoveGroupInterface> move_group;
-        actionlib::SimpleActionClient<hector_uav_msgs::PoseAction> pose_client;
+        actionlib::SimpleActionClient<hector_moveit_actions::ExecuteDroneTrajectoryAction> trajectory_client;
         std::unique_ptr<robot_state::RobotState> start_state;
         std::unique_ptr<planning_scene::PlanningScene> planning_scene;
         const double takeoff_altitude = 1.0;
@@ -59,7 +59,7 @@ class Quadrotor{
 
         void planCallback(const moveit_msgs::DisplayTrajectory::ConstPtr& msg);
 
-        void collisionCallback();
+        void collisionCallback(const hector_moveit_actions::ExecuteDroneTrajectoryFeedbackConstPtr& feedback);
 
         bool go(geometry_msgs::Pose& target_);
     

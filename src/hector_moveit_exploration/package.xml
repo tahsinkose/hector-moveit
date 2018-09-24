@@ -17,6 +17,7 @@
   <depend>hector_uav_msgs</depend>
   <depend>std_msgs</depend>
   <depend>octomap</depend>
+  <depend>hector_moveit_actions</depend>
   <export>
 
   </export>

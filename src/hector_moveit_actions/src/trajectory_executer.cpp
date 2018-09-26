@@ -12,9 +12,8 @@
 #include <cmath>
 #define _USE_MATH_DEFINES
 
-#define MAX_SPEED 1.5
+#define MAX_SPEED 2.0
 #define EPSILON 1e-4
-#define TURNING_DURATION 2.0
 class TrajectoryActionController{
     private:
 
@@ -62,34 +61,37 @@ class TrajectoryActionController{
                
                 geometry_msgs::Pose p = trajectory[k];
                 geometry_msgs::Pose waypoint = p;
-                if(k+1<trajectory.size()){
-                    geometry_msgs::Pose next_waypoint = trajectory[k+1];
-                    double y_diff = next_waypoint.position.y - waypoint.position.y;
-                    double x_diff = next_waypoint.position.x - waypoint.position.x;
-                    double yaw = atan2(y_diff,x_diff);
+               
+                   
+                double y_diff = waypoint.position.y - last_pose.position.y;
+                double x_diff = waypoint.position.x - last_pose.position.x;
+                double yaw = atan2(y_diff,x_diff);
                     
-                    double required_yaw = limitAngleRange(yaw+M_PI)/2;
-                    double current_yaw = last_pose.orientation.z;
-                    ROS_INFO("Required yaw: %lf, current yaw: %lf",required_yaw,current_yaw);
-                    if(fabs(y_diff)>EPSILON && fabs(x_diff)>EPSILON && fabs(required_yaw - current_yaw)>0.1){ //Prevent 0 division
-                       
-                        tf::Quaternion q = tf::createQuaternionFromYaw(yaw+M_PI);
-                        waypoint.orientation.x = q.x();
-                        waypoint.orientation.y = q.y();
-                        waypoint.orientation.z = q.z();
-                        waypoint.orientation.w = q.w();
+                double required_yaw = limitAngleRange(yaw+M_PI);
+                tf::Quaternion q;
+                tf:quaternionMsgToTF(last_pose.orientation, q);
+                double tmp, current_yaw;
+                tf::Matrix3x3(q).getRPY(tmp,tmp, current_yaw);
+                required_yaw /=2;
+                if(fabs(y_diff)>EPSILON && fabs(x_diff)>EPSILON && fabs(required_yaw - current_yaw)>0.01){ //Prevent 0 division
+                    
+                    tf::Quaternion q = tf::createQuaternionFromYaw(required_yaw);
+                    waypoint.orientation.x = q.x();
+                    waypoint.orientation.y = q.y();
+                    waypoint.orientation.z = q.z();
+                    waypoint.orientation.w = q.w();
 
-                        waypoint.position = last_pose.position;
-                        hector_uav_msgs::PoseGoal orientation_goal;
-                        orientation_goal.target_pose.pose = waypoint;
-                        orientation_goal.target_pose.header.frame_id="world";
-                        ROS_INFO("Wait for orientation goal to complete");
-                        orientation_client_.sendGoal(orientation_goal,actionlib::SimpleActionClient<hector_uav_msgs::PoseAction>::SimpleDoneCallback(),
-                            actionlib::SimpleActionClient<hector_uav_msgs::PoseAction>::SimpleActiveCallback(),
-                            actionlib::SimpleActionClient<hector_uav_msgs::PoseAction>::SimpleFeedbackCallback());
-                        orientation_client_.waitForResult();
-                    }
+                    waypoint.position = last_pose.position;
+                    hector_uav_msgs::PoseGoal orientation_goal;
+                    orientation_goal.target_pose.pose = waypoint;
+                    orientation_goal.target_pose.header.frame_id="world";
+                    orientation_client_.sendGoal(orientation_goal,actionlib::SimpleActionClient<hector_uav_msgs::PoseAction>::SimpleDoneCallback(),
+                        actionlib::SimpleActionClient<hector_uav_msgs::PoseAction>::SimpleActiveCallback(),
+                        actionlib::SimpleActionClient<hector_uav_msgs::PoseAction>::SimpleFeedbackCallback());
+                    //orientation_client_.waitForResult();
+                    ros::Duration(0.05).sleep();
                 }
+                
                 
                 waypoint.position = p.position;
         

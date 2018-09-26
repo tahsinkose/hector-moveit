@@ -14,7 +14,7 @@ Quadrotor::Quadrotor(ros::NodeHandle& nh) : trajectory_client("/action/trajector
             for(int k=0;k<2;k++){
                 double x_offset = (i==0 ? 1.0 : -1.0);
                 double y_offset = (j==0 ? 1.0 : -1.0);
-                double z_offset = (k==0 ? 1.0 : -1.0);
+                double z_offset = (k==0 ? 1.5 : -1.0);
                 geometry_msgs::Pose corner;
                 corner.position.x = xlimits[i] + x_offset;
                 corner.position.y = ylimits[j] + y_offset;
@@ -142,8 +142,19 @@ bool Quadrotor::go(geometry_msgs::Pose& target_)
         hector_moveit_actions::ExecuteDroneTrajectoryGoal goal;
         
         for(int i=0;i<trajectory.size();i++){
-            
-            if(i+1<trajectory.size()){
+            if(i==0){
+                double y_diff = trajectory[i].position.y - odometry_information.position.y;
+                double x_diff = trajectory[i].position.x - odometry_information.position.x;
+                double yaw = atan2(y_diff,x_diff);
+                if(fabs(y_diff)>EPSILON || fabs(x_diff)>EPSILON ){ //Prevent 0 division
+                    tf::Quaternion q = tf::createQuaternionFromYaw(yaw+M_PI);
+                    trajectory[i].orientation.x = q.x();
+                    trajectory[i].orientation.y = q.y();
+                    trajectory[i].orientation.z = q.z();
+                    trajectory[i].orientation.w = q.w();
+                }
+            }
+            else if(i+1<trajectory.size()){
                 geometry_msgs::Pose next_waypoint = trajectory[i+1];
                 double y_diff = next_waypoint.position.y - trajectory[i].position.y;
                 double x_diff = next_waypoint.position.x - trajectory[i].position.x;
@@ -152,13 +163,13 @@ bool Quadrotor::go(geometry_msgs::Pose& target_)
                 if(fabs(y_diff)>EPSILON || fabs(x_diff)>EPSILON ){ //Prevent 0 division
                     
                     tf::Quaternion q = tf::createQuaternionFromYaw(yaw+M_PI);
-                    trajectory[i].orientation.x = q.x();
-                    trajectory[i].orientation.y = q.y();
-                    trajectory[i].orientation.z = q.z();
-                    trajectory[i].orientation.w = q.w();
+                    trajectory[i+1].orientation.x = q.x();
+                    trajectory[i+1].orientation.y = q.y();
+                    trajectory[i+1].orientation.z = q.z();
+                    trajectory[i+1].orientation.w = q.w();
                 }
-                goal.trajectory.push_back(trajectory[i]);
             }
+            goal.trajectory.push_back(trajectory[i]);
         }    
         ROS_INFO("Send Trajectory Goal");
         trajectory_client.sendGoal(goal,actionlib::SimpleActionClient<hector_moveit_actions::ExecuteDroneTrajectoryAction>::SimpleDoneCallback(),

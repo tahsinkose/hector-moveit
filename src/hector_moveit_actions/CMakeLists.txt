@@ -24,5 +24,5 @@ target_link_libraries(trajectory_executer ${catkin_LIBRARIES})
 
 add_dependencies(
   trajectory_executer
-  ${hector_moveit_actions_EXPORTED_TARGETS}
+  ${hector_moveit_actions_EXPORTED_TARGETS} hector_uav_msgs_generate_messages
 )

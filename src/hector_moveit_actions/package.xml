@@ -11,6 +11,7 @@
   <buildtool_depend>catkin</buildtool_depend>
   <depend>actionlib_msgs</depend>
   <depend>roscpp</depend>
+  <depend>hector_uav_msgs</depend>
   <exec_depend>message_generation</exec_depend>
 
   <export>

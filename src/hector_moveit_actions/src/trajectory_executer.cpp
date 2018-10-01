@@ -75,7 +75,7 @@ class TrajectoryActionController{
                 required_yaw /=2;
                 if(fabs(y_diff)>EPSILON && fabs(x_diff)>EPSILON && fabs(required_yaw - current_yaw)>0.01){ //Prevent 0 division
                     
-                    tf::Quaternion q = tf::createQuaternionFromYaw(required_yaw);
+                    tf::Quaternion q = tf::createQuaternionFromYaw(yaw+M_PI);
                     waypoint.orientation.x = q.x();
                     waypoint.orientation.y = q.y();
                     waypoint.orientation.z = q.z();
@@ -147,7 +147,7 @@ class TrajectoryActionController{
         
                 
             limitVelocity();
-            ROS_INFO("Computed translational velocity: [%lf,%lf,%lf]",cmd.linear.x,cmd.linear.y,cmd.linear.z);
+            //ROS_INFO("Computed translational velocity: [%lf,%lf,%lf]",cmd.linear.x,cmd.linear.y,cmd.linear.z);
             vel_pub.publish(cmd);
 
             ros::spinOnce();

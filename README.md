@@ -15,6 +15,20 @@ The new thing is the usage of MoveIt! code API so as to implement a 3D autonomou
 [![Orchard Exploration](http://img.youtube.com/vi/ZWn9N9Y_tb8/0.jpg)](https://www.youtube.com/watch?v=ZWn9N9Y_tb8 "Orchard Exploration")
 
 In order to welcome newcomers, status quo of simulation is the best advertisement. For further detail, go to Development log.
+
+### Getting Started
+This project depends only on MoveIt! framework. In order to get all necessary packages, run the command:
+
+`sudo apt-get install ros-kinetic-moveit*`
+
+After that, the repository should be cloned with all its submodules:
+
+`git clone --recurse-submodules https://github.com/tahsinkose/hector-moveit.git`
+
+Since, Github does not support partial submoduling yet, the package `hector_gazebo_termal_camera` should be deleted after above command is executed.
+
+Finally, execute `catkin_make` to build the project. Then launch `roslaunch hector_moveit_gazebo orchyard_navigation.launch` and `roslaunch hector_moveit_exploration explore.launch` respectively.
+ 
 ## References
 <a href="https://github.com/wilselby/ROS_quadrotor_simulator">ROS Quadrotor Simulator by Wil Selby</a>
 

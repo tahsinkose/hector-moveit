@@ -17,9 +17,11 @@ The new thing is the usage of MoveIt! code API so as to implement a 3D autonomou
 In order to welcome newcomers, status quo of simulation is the best advertisement. For further detail, go to Development log.
 
 ### Getting Started
-This project depends only on MoveIt! framework. In order to get all necessary packages, run the command:
+This project depends on MoveIt! framework and Gazebo 9. In order to get all necessary packages, run the command:
 
 `sudo apt-get install ros-kinetic-moveit*`
+
+`sudo apt-get install gazebo9 libgazebo9-dev ros-kinetic-gazebo9*`
 
 After that, the repository should be cloned with all its submodules:
 

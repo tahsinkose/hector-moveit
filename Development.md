@@ -51,6 +51,13 @@ After the simulation environments are ready, first goal was to properly, safely 
 
 * A Frontier approach that determines the next goal from extracted frontiers. Currently, the goals are hardcoded in a way that traverses the faces and corners of the rectangular volume.
 
+#### Version 2
+- [x] Orientation Fixation is now perfectly handled.
+
+- [x] Velocity controller produces motion commands according to whole trajectory instead of separate waypoints.
+
+- [ ] A Grid-based frontier approach that uses the frontiers chosen randomly with respect to their distances is determined to be implemented for Version 3. 
+
 ### References
 * <a href="https://ocw.mit.edu/courses/aeronautics-and-astronautics/16-412j-cognitive-robotics-spring-2005/projects/1aslam_blas_repo.pdf">SLAM for Dummies</a>
 

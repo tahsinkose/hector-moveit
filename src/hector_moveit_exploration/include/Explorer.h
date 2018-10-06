@@ -43,7 +43,16 @@ class Compare{
             return lhs.first < rhs.first;
         }
 };
+typedef std::priority_queue<DistancedPoint,std::vector<DistancedPoint>, Compare> DistancedPointPriorityQueue;
 
+#include <iostream>
+#include <chrono>
+
+using namespace std;
+using  ns = chrono::nanoseconds;
+using get_time = chrono::steady_clock;
+
+#include <omp.h>
 class Quadrotor{
     private:
         std::unique_ptr<moveit::planning_interface::MoveGroupInterface> move_group;
@@ -58,7 +67,8 @@ class Quadrotor{
 
         geometry_msgs::Pose odometry_information;
         std::vector<geometry_msgs::Pose> trajectory;
-        std::priority_queue<DistancedPoint,std::vector<DistancedPoint>, Compare> orchard_points;
+        std::vector<geometry_msgs::Pose> invalid_poses;
+        std::queue<DistancedPoint> frontiers;
         std::vector<geometry_msgs::Pose> explored;
 
         ros::Subscriber base_sub,plan_sub;
@@ -75,8 +85,11 @@ class Quadrotor{
         void planCallback(const moveit_msgs::DisplayTrajectory::ConstPtr& msg);
 
         void collisionCallback(const hector_moveit_actions::ExecuteDroneTrajectoryFeedbackConstPtr& feedback);
-        
-        void findFrontier(const actionlib::SimpleClientGoalState& state,const hector_moveit_actions::ExecuteDroneTrajectoryResultConstPtr& result);
+
+        double countFreeVolume(const octomap::OcTree *octree);
+        double calc_MI(const octomap::OcTree *octree, const geometry_msgs::Point& point, const octomap::Pointcloud &hits, const double before);
+        octomap::Pointcloud castSensorRays(const octomap::OcTree* curr_tree,const geometry_msgs::Pose& pose);
+        void findFrontier();
 
         bool go(geometry_msgs::Pose& target_);
     

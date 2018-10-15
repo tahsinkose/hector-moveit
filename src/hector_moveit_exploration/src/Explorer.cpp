@@ -6,28 +6,14 @@ Quadrotor::Quadrotor(ros::NodeHandle& nh) : trajectory_client("/action/trajector
     odom_received = false;
     trajectory_received = false;
     collision = false;
-    std::vector<double> xlimits = {XMIN,XMAX};
-    std::vector<double> ylimits = {YMIN,YMAX};
-    std::vector<double> zlimits = {ZMIN,ZMAX};
-    
-    /*for(int i=0;i<2;i++)
-        for(int j=0;j<2;j++)
-            for(int k=0;k<2;k++){
-                double x_offset = (i==0 ? 1.0 : -1.0);
-                double y_offset = (j==0 ? 1.0 : -1.0);
-                double z_offset = (k==0 ? 1.5 : -1.0);
-                geometry_msgs::Pose corner;
-                corner.position.x = xlimits[i] + x_offset;
-                corner.position.y = ylimits[j] + y_offset;
-                corner.position.z = zlimits[k] + z_offset;
-                corner.orientation.w = 1;
+    nh.getParam("/grid_size",GRID);
 
-                frontiers.push_back(corner);
-            }
-    */
+    patches.resize(GRID,std::vector<int>(GRID,0));
     base_sub = nh.subscribe<nav_msgs::Odometry>("/ground_truth/state",10,&Quadrotor::poseCallback,this);
     plan_sub = nh.subscribe<moveit_msgs::DisplayTrajectory>("/move_group/display_planned_path",1,&Quadrotor::planCallback,this);
 
+    gui_ack = nh.advertise<geometry_msgs::Point>("/orchard_grid_filler",10);
+    rate_ack = nh.advertise<std_msgs::Float64>("/orchard_exploration_rate",1);
     move_group.reset(new moveit::planning_interface::MoveGroupInterface(PLANNING_GROUP));
     robot_model_loader::RobotModelLoader robot_model_loader("robot_description");
     robot_model::RobotModelPtr kmodel = robot_model_loader.getModel();
@@ -93,7 +79,11 @@ void Quadrotor::collisionCallback(const hector_moveit_actions::ExecuteDroneTraje
                 }
             }
         }
-        ROS_INFO("Coverage of Orchard Volume: %lf Percent",known*100.0/(float)(unknown+known));
+        double rate = known*100.0/(float)(unknown+known);
+        std_msgs::Float64 msg;
+        msg.data = rate;
+        rate_ack.publish(msg);
+        //ROS_INFO("Coverage of Orchard Volume: %lf Percent",rate);
         
         delete current_map;
         std::vector<size_t> invalid_indices;
@@ -209,7 +199,6 @@ void Quadrotor::findFrontier()
         std::vector<std::pair<double, geometry_msgs::Pose> > candidate_frontiers;
         for(octomap::OcTree::leaf_iterator n = current_map->begin_leafs(current_map->getTreeDepth()); n != current_map->end_leafs(); ++n)
         {
-            //if(candidate_frontiers.size()==15) break;
             if(!current_map->isNodeOccupied(*n))
             {
                 double x_cur = n.getX();
@@ -217,6 +206,8 @@ void Quadrotor::findFrontier()
                 double z_cur = n.getZ();
                 
                 bool frontier = false;
+
+                // Check whether very close point is discovered previously
                 bool already_explored = false;
                 for(auto a : explored){
                     if(fabs(x_cur - a.position.x) < 2.0 && fabs(y_cur - a.position.y) < 2.0 && fabs(z_cur - a.position.z) < 2.0){
@@ -224,11 +215,17 @@ void Quadrotor::findFrontier()
                         break;
                     }
                 }
-                if(already_explored)
-                    continue;
+                // Reject the frontiers that are located in the patches who had many frontiers already discovered.
+                
                 if(x_cur < XMIN + resolution || x_cur > XMAX - resolution
                 || y_cur < YMIN + resolution || y_cur > YMAX - resolution
                 || z_cur < ZMIN + resolution || z_cur > ZMAX - resolution) continue;
+                double xspan = XMAX-XMIN;
+                double yspan = YMAX-YMIN;
+                int xpatch = (x_cur-XMIN)*GRID/xspan;
+                int ypatch = (y_cur-YMIN)*GRID/yspan;
+               if(already_explored || patches[xpatch][ypatch]>= PATCH_LIMIT)
+                    continue;
                 for (double x_cur_buf = x_cur - resolution; x_cur_buf < x_cur + resolution; x_cur_buf += resolution)
                 {   
                     for (double y_cur_buf = y_cur - resolution; y_cur_buf < y_cur + resolution; y_cur_buf += resolution)
@@ -251,10 +248,10 @@ void Quadrotor::findFrontier()
                 }
             }
         }
-        std::sort(candidate_frontiers.begin(),candidate_frontiers.end(), 
+        /*std::sort(candidate_frontiers.begin(),candidate_frontiers.end(), 
             [](const DistancedPoint& x, const DistancedPoint& y){
                 return x.first > y.first;
-            });
+            });*/
         std::vector<int> indices(candidate_frontiers.size());
         if(candidate_frontiers.size() > 10){
             
@@ -426,6 +423,18 @@ void Quadrotor::run()
 
             success = go(_goal);
             if(!success) invalid_poses.push_back(_goal);
+            else{
+                double xspan = XMAX-XMIN;
+                double yspan = YMAX-YMIN;
+                int xpatch = (_goal.position.x - XMIN)*GRID/xspan;
+                int ypatch = (_goal.position.y - YMIN)*GRID/yspan;
+                patches[xpatch][ypatch]++;
+
+                geometry_msgs::Point msg;
+                msg.x = xpatch;
+                msg.y = ypatch;
+                gui_ack.publish(msg);
+            }
             ros::spinOnce();
             rate.sleep();
         }while(!success);

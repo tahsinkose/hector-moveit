@@ -8,6 +8,7 @@
 #include <moveit/planning_scene/planning_scene.h>
 
 #include <geometry_msgs/Pose.h>
+#include <std_msgs/Float64.h>
 #include <nav_msgs/Odometry.h>
 #include <octomap_msgs/conversions.h>
 
@@ -53,6 +54,7 @@ using  ns = chrono::nanoseconds;
 using get_time = chrono::steady_clock;
 
 #include <omp.h>
+#define PATCH_LIMIT 1
 class Quadrotor{
     private:
         std::unique_ptr<moveit::planning_interface::MoveGroupInterface> move_group;
@@ -60,18 +62,21 @@ class Quadrotor{
         std::unique_ptr<robot_state::RobotState> start_state;
         std::unique_ptr<planning_scene::PlanningScene> planning_scene;
         const double takeoff_altitude = 1.0;
-
+        int GRID;
         bool odom_received,trajectory_received;
         bool isPathValid;
         bool collision;
 
         geometry_msgs::Pose odometry_information;
         std::vector<geometry_msgs::Pose> trajectory;
+        
         std::vector<geometry_msgs::Pose> invalid_poses;
+        std::vector<std::vector<int> > patches;
         std::queue<DistancedPoint> frontiers;
         std::vector<geometry_msgs::Pose> explored;
 
         ros::Subscriber base_sub,plan_sub;
+        ros::Publisher gui_ack,rate_ack;
         ros::ServiceClient motor_enable_service; 
         ros::ServiceClient planning_scene_service;
 

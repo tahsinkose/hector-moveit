@@ -74,7 +74,6 @@ class TrajectoryActionController{
                 tf::Matrix3x3(q).getRPY(tmp,tmp, current_yaw);
                 required_yaw /=2;
                 if(fabs(y_diff)>EPSILON && fabs(x_diff)>EPSILON && fabs(required_yaw - current_yaw)>0.01){ //Prevent 0 division
-                    
                     tf::Quaternion q = tf::createQuaternionFromYaw(yaw+M_PI);
                     waypoint.orientation.x = q.x();
                     waypoint.orientation.y = q.y();
@@ -130,28 +129,25 @@ class TrajectoryActionController{
         }
 
         bool publishTranslationComand(geometry_msgs::Pose& p){
-            float Kc_linear = 1.0;
+            float Kc_linear = 2.0;
             float Kc_bearing = 1.0;
             
             tf::Vector3 pos;
             pos.setX(p.position.x-last_pose.position.x);
             pos.setY(p.position.y-last_pose.position.y);
             pos.setZ(p.position.z-last_pose.position.z);
-            
-            tf::Vector3 relativePosition = pos;
 
-            cmd.linear.x=relativePosition.getX()*Kc_linear;
-            cmd.linear.y=relativePosition.getY()*Kc_linear;
-            cmd.linear.z=relativePosition.getZ()*Kc_linear;
+            cmd.linear.x=pos.getX()*Kc_linear;
+            cmd.linear.y=0;
+            cmd.linear.z=pos.getZ()*Kc_linear;
             cmd.angular.x=cmd.angular.y=0,cmd.angular.z=0;
         
                 
             limitVelocity();
-            //ROS_INFO("Computed translational velocity: [%lf,%lf,%lf]",cmd.linear.x,cmd.linear.y,cmd.linear.z);
             vel_pub.publish(cmd);
 
             ros::spinOnce();
-            ros::Duration(1.0).sleep();
+            ros::Duration(0.5).sleep();
             return true;
         }
 

@@ -34,7 +34,7 @@
   </node>
 
 
- 
+  
   <include file="$(find hector_moveit_config)/launch/move_group.launch">
     <arg name="allow_trajectory_execution" value="true"/>
     <arg name="fake_execution" value="true"/>
@@ -42,6 +42,8 @@
     <arg name="debug" value="$(arg debug)"/>
   </include>
 
+  <!-- Adjust grid size to have more granular exploration-->
+  <param name="grid_size" type="double" value="13"/> 
   <!-- Visualisation RVIZ -->
   <node pkg="rviz" type="rviz" name="rviz" args="-d $(find hector_moveit_config)/launch/moveit.rviz" output="screen"/>
   

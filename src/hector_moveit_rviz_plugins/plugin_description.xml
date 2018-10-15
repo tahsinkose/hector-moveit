@@ -1,0 +1,9 @@
+<library path="lib/libhector_moveit_rviz_plugins">
+  <class name="hector_moveit_rviz_plugins/OrchardGrid"
+         type="hector_moveit_rviz_plugins::OrchardGridPanel"
+         base_class_type="rviz::Panel">
+    <description>
+      A panel widget expresses the exploration status of the orchard.
+    </description>
+  </class>
+</library>

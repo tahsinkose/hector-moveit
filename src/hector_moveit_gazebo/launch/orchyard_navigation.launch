@@ -18,6 +18,7 @@
     <include file="$(find hector_quadrotor_gazebo)/launch/spawn_quadrotor_with_kinect.launch">    
       <arg name="use_ground_truth_for_tf" value="$(arg use_ground_truth_for_tf)" />
       <arg name="x" value="20" />
+      <arg name="yaw" value="3.14"/>
     </include>
 
   <!-- The name of the parameter under which the URDF is loaded -->

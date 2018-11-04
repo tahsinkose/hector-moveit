@@ -9,10 +9,12 @@
 #include <nav_msgs/Odometry.h>
 
 #include <hector_uav_msgs/PoseAction.h>
+#include <hector_uav_msgs/EnableMotors.h>
+
 #include <cmath>
 #define _USE_MATH_DEFINES
 
-#define MAX_SPEED 2.0
+#define MAX_SPEED 1.5
 #define EPSILON 1e-4
 class TrajectoryActionController{
     private:
@@ -34,7 +36,7 @@ class TrajectoryActionController{
        
         Feedback feedback_;
         Result result_;
-        bool success;
+        bool success, executing;
     public:
         TrajectoryActionController(std::string name) : action_name(name), 
             server_(nh_,name,boost::bind(&TrajectoryActionController::executeCB,this,_1),false),
@@ -42,66 +44,137 @@ class TrajectoryActionController{
                 orientation_client_.waitForServer();
                 empty.linear.x = 0;empty.linear.y = 0; empty.linear.z = 0;
                 empty.angular.x = 0;empty.angular.y = 0;empty.angular.z = 0;
-                vel_pub = nh_.advertise<geometry_msgs::Twist>("cmd_vel",1);
+                vel_pub = nh_.advertise<geometry_msgs::Twist>("/cmd_vel",10);
                 pose_sub = nh_.subscribe<nav_msgs::Odometry>("/ground_truth/state",10,&TrajectoryActionController::poseCallback,this);
+                ros::ServiceClient enable_motors = nh_.serviceClient<hector_uav_msgs::EnableMotors>("/enable_motors");
+                hector_uav_msgs::EnableMotors srv;
+                srv.request.enable = true;
+                if(enable_motors.call(srv)){
+                    if(srv.response.success)
+                        ROS_INFO("Motors are enabled");
+                }
                 success = true;
+                executing = false;
                 server_.start();
             
             }
         void executeCB(const hector_moveit_actions::ExecuteDroneTrajectoryGoalConstPtr &goal){
-            
+            executing = true;
             trajectory = goal->trajectory;
             ROS_INFO_STREAM("Executing trajectory!");
-            for(int k=0; k<trajectory.size(); k++){
+            for(int i=0; i<trajectory.size()-1; i++){
                 if(server_.isPreemptRequested() || !ros::ok()){
                     ROS_INFO("Preempt requested");
                     this->success = false;
+                    executing = false;
                     break;
                 }
-               
-                geometry_msgs::Pose p = trajectory[k];
-                geometry_msgs::Pose waypoint = p;
-               
-                   
-                double y_diff = waypoint.position.y - last_pose.position.y;
-                double x_diff = waypoint.position.x - last_pose.position.x;
-                double yaw = atan2(y_diff,x_diff);
-                    
-                double required_yaw = limitAngleRange(yaw+M_PI);
-                tf::Quaternion q;
-                tf:quaternionMsgToTF(last_pose.orientation, q);
-                double tmp, current_yaw;
-                tf::Matrix3x3(q).getRPY(tmp,tmp, current_yaw);
-                required_yaw /=2;
-                if(fabs(y_diff)>EPSILON && fabs(x_diff)>EPSILON && fabs(required_yaw - current_yaw)>0.01){ //Prevent 0 division
-                    tf::Quaternion q = tf::createQuaternionFromYaw(yaw+M_PI);
-                    waypoint.orientation.x = q.x();
-                    waypoint.orientation.y = q.y();
-                    waypoint.orientation.z = q.z();
-                    waypoint.orientation.w = q.w();
+                geometry_msgs::Twist vel_msg;
+                last_pose.position=trajectory[i+1].position;
+                last_pose.orientation=trajectory[i+1].orientation;
+                feedback_.current_pose = last_pose;
+                ros::spinOnce();
+                ros::Duration(0.05).sleep();
+                double goalx = trajectory[i+1].position.x;
+                double goaly = trajectory[i+1].position.y;
+                double goalz = trajectory[i+1].position.z;
+                double diffx = goalx - last_pose.position.x;
+                double diffy = goaly - last_pose.position.y;
 
-                    waypoint.position = last_pose.position;
-                    hector_uav_msgs::PoseGoal orientation_goal;
-                    orientation_goal.target_pose.pose = waypoint;
-                    orientation_goal.target_pose.header.frame_id="world";
-                    orientation_client_.sendGoal(orientation_goal,actionlib::SimpleActionClient<hector_uav_msgs::PoseAction>::SimpleDoneCallback(),
-                        actionlib::SimpleActionClient<hector_uav_msgs::PoseAction>::SimpleActiveCallback(),
-                        actionlib::SimpleActionClient<hector_uav_msgs::PoseAction>::SimpleFeedbackCallback());
-                    //orientation_client_.waitForResult();
-                    ros::Duration(0.05).sleep();
+                double diffz = goalz - last_pose.position.z;
+                
+
+                double step_angle = atan2(diffy,diffx);
+                tf::Quaternion q;
+                quaternionMsgToTF(last_pose.orientation,q);
+                tf::Matrix3x3 m(q);
+                double tmp,heading;
+                m.getRPY(tmp,tmp,heading);
+
+                ROS_INFO("Diffz: %lf",diffz);
+                ROS_INFO("Step angle: %lf, heading: %lf",step_angle,heading);
+                ros::Rate r(4);
+                if(((fabs(diffx)>0.01 || fabs(diffy)>0.01) && fabs(step_angle-heading) > 0.3)){
+                    hector_uav_msgs::PoseGoal goal;
+                    ROS_INFO("Adjust orientation");
+                    geometry_msgs::Pose p;
+                    p.position.x = goalx;
+                    p.position.y = goaly;
+                    p.position.z = goalz;
+                    tf::Quaternion q;
+                    if(fabs(diffx)>0.01 || fabs(diffy)>0.01)
+                        q = tf::createQuaternionFromYaw(step_angle);
+                    else
+                        q = tf::createQuaternionFromYaw(heading);    
+                    p.orientation.x = q.x();
+                    p.orientation.y = q.y();
+                    p.orientation.z = q.z();
+                    p.orientation.w = q.w();
+                    server_.publishFeedback(feedback_);
+                    goal.target_pose.pose = p;
+                    goal.target_pose.header.frame_id="world";
+                    
+                    orientation_client_.waitForServer();
+                    orientation_client_.sendGoal(goal,actionlib::SimpleActionClient<hector_uav_msgs::PoseAction>::SimpleDoneCallback(),
+                            actionlib::SimpleActionClient<hector_uav_msgs::PoseAction>::SimpleActiveCallback(),
+                            boost::bind(&TrajectoryActionController::actionCallback,this,_1,p));
+                    orientation_client_.waitForResult();
+                    continue;
+                }
+                while(fabs(diffz)>0.08){
+                    vel_msg.linear.x = 0;
+                    vel_msg.linear.z = diffz * 3;
+                    vel_pub.publish(vel_msg);
+                    ros::spinOnce();
+                    r.sleep();
+                    diffz = goalz - last_pose.position.z;
+                    server_.publishFeedback(feedback_);
                 }
                 
+
                 
-                waypoint.position = p.position;
-        
-                publishTranslationComand(waypoint);
-                vel_pub.publish(empty);
-                last_pose.position=waypoint.position;
-                last_pose.orientation=waypoint.orientation;
-                feedback_.current_pose = last_pose;
-                server_.publishFeedback(feedback_);
+                
+                double latched_distance = sqrt(pow(diffx,2) + pow(diffy,2));
+                double distance = latched_distance;
+                vel_msg.linear.y = 0; vel_msg.linear.x= MAX_SPEED,vel_msg.linear.z = 0;
+                if(i>trajectory.size()-3) // Slow down at final waypoints.
+                        vel_msg.linear.x /= 3;
+                ROS_INFO("Computed distance: %lf",distance);
+                while(distance > 0.4*MAX_SPEED){
+                    
+                    vel_pub.publish(vel_msg);
+                    ros::spinOnce();
+                    r.sleep();
+                    distance = sqrt(pow(goalx - last_pose.position.x,2) + pow(goaly - last_pose.position.y,2));
+                    ROS_INFO("Distance to goal: %lf",distance);
+                    server_.publishFeedback(feedback_);
+                    if(distance < latched_distance) latched_distance = distance;
+                    if(distance > latched_distance){
+                        hector_uav_msgs::PoseGoal goal;
+                        geometry_msgs::Pose p;
+                        p.position.x = goalx;
+                        p.position.y = goaly;
+                        p.position.z = goalz;
+                        tf::Quaternion q = tf::createQuaternionFromYaw(step_angle);
+                        p.orientation.x = q.x();
+                        p.orientation.y = q.y();
+                        p.orientation.z = q.z();
+                        p.orientation.w = q.w();
+                        server_.publishFeedback(feedback_);
+                        goal.target_pose.pose = p;
+                        goal.target_pose.header.frame_id="world";
+                        
+                        orientation_client_.waitForServer();
+                        orientation_client_.sendGoal(goal,actionlib::SimpleActionClient<hector_uav_msgs::PoseAction>::SimpleDoneCallback(),
+                                actionlib::SimpleActionClient<hector_uav_msgs::PoseAction>::SimpleActiveCallback(),
+                                boost::bind(&TrajectoryActionController::actionCallback,this,_1,p));
+                        orientation_client_.waitForResult();
+                        break;
+                    }
+                }
                 
             }
+            executing = false;
             if(!this->success){
                 result_.result_code = Result::COLLISION_IN_FRONT;
                 server_.setPreempted(result_);
@@ -110,47 +183,23 @@ class TrajectoryActionController{
             ROS_INFO_STREAM("Executed trajectory!");
             result_.result_code = Result::SUCCESSFUL;
             server_.setSucceeded(result_);
-            
+           
         }
-        inline double limitAngleRange(double angle){
-            while(angle>M_PI)
-                angle -= 2*M_PI;
-            while(angle<=-M_PI)
-                angle += 2*M_PI;
-            return angle;
-        }
-        inline void limitVelocity(){
-            double mag = sqrt(pow(cmd.linear.x,2) + pow(cmd.linear.y,2) + pow(cmd.linear.z,2));
-            if(mag>MAX_SPEED){
-                cmd.linear.x /= mag/MAX_SPEED;
-                cmd.linear.y /= mag/MAX_SPEED;
-                cmd.linear.z /= mag/MAX_SPEED; 
+        void idle(){
+            while(ros::ok()){
+                if(!executing)
+                    vel_pub.publish(empty);
+                ros::spinOnce();
+                ros::Duration(0.25).sleep();
             }
         }
-
-        bool publishTranslationComand(geometry_msgs::Pose& p){
-            float Kc_linear = 2.0;
-            float Kc_bearing = 1.0;
-            
-            tf::Vector3 pos;
-            pos.setX(p.position.x-last_pose.position.x);
-            pos.setY(p.position.y-last_pose.position.y);
-            pos.setZ(p.position.z-last_pose.position.z);
-
-            cmd.linear.x=pos.getX()*Kc_linear;
-            cmd.linear.y=0;
-            cmd.linear.z=pos.getZ()*Kc_linear;
-            cmd.angular.x=cmd.angular.y=0,cmd.angular.z=0;
-        
-                
-            limitVelocity();
-            vel_pub.publish(cmd);
-
-            ros::spinOnce();
-            ros::Duration(0.5).sleep();
-            return true;
+        void actionCallback(const hector_uav_msgs::PoseFeedbackConstPtr& feedback,geometry_msgs::Pose& p){
+            double euler_distance = pow(p.position.x - feedback->current_pose.pose.position.x,2) + pow(p.position.y - feedback->current_pose.pose.position.y,2)
+                                    + pow(p.position.z - feedback->current_pose.pose.position.z,2);
+            euler_distance = sqrt(euler_distance);
+            if(euler_distance < 0.15)
+                orientation_client_.cancelGoal();
         }
-
         void poseCallback(const nav_msgs::Odometry::ConstPtr & msg)
         {
             last_pose = msg->pose.pose;
@@ -164,6 +213,7 @@ int main(int argc, char** argv)
 {
   ros::init(argc, argv, "trajectory_executor");
   TrajectoryActionController controller("/action/trajectory");
-  ros::spin();
+  controller.idle();
+  //ros::spin();
   return 0;
 }

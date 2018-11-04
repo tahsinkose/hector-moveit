@@ -38,6 +38,7 @@ Exploration version 2 is explained in further detail in the Development log. In 
 In this version, the last proposed feature is implemented, i.e. there is a grid heuristics in which the drone does not navigate back into the cells that it previously visited. I have seen a inversely linear relation between the grid size and exploration percentage in 10 minutes. For example, for a 25x25 grid, the exploration rate was at most 32% whereas, in 15x15 case it boosted up to 37% degrees. In the final case, 13x13 grid allowed the drone to explore 40.7% of the volume in 10 minutes. With much more advanced heuristics, it is possible to increase this number.
 
 Consequently, a new RViz panel for Exploration stack is developed in which the grid can be interactively inspected and the exploration rate can be observed. In future, there might be some user interface logic for particular areas to be investigated, but in the foreseeable future it is not on the To-Do list.
+
 <img src="/images/orchard_exploration_v3_gui.png" alt="Exploration GUI" width="435" height="435"/>
 <img src="/images/orchard_exploration_v3_gui2.png" alt="Exploration GUI" width="435" height="435"/>
 

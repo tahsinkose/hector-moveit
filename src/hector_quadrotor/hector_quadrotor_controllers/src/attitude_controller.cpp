@@ -159,7 +159,7 @@ public:
       if (!command_estop_) {
         estop_thrust_command_ = thrust_command_;
       }
-      ROS_WARN_STREAM_THROTTLE_NAMED(1.0, "attitude_controller", "No command received for "
+      ROS_WARN_STREAM_THROTTLE_NAMED(1.0, "attitude_controller", "attitude_controller: No command received for "
                                     << (time - std::min(std::min(attitude_command_.header.stamp, yawrate_command_.header.stamp), thrust_command_.header.stamp)).toSec() <<
           "s, triggering estop");
       command_estop_ = true;
@@ -177,7 +177,6 @@ public:
     Accel accel = accel_->acceleration(), accel_body;
     accel_body.linear = pose_->toBody(accel.linear);
     accel_body.angular = pose_->toBody(accel.angular);
-
     if (estop_ || command_estop_)
     {
       attitude_command_.roll = attitude_command_.pitch = yawrate_command_.turnrate = 0;
@@ -185,6 +184,10 @@ public:
       if (estop_thrust_command_.thrust < 0) estop_thrust_command_.thrust = 0;
       thrust_command_ = estop_thrust_command_;
     }
+    /*else{
+       ROS_INFO("Linear Acceleration: %lf,%lf,%lf | Angular Acceleration: %lf,%lf,%lf",accel_body.linear.x,accel_body.linear.y,accel_body.linear.z,
+                                                                                      accel_body.angular.x,accel_body.angular.y,accel_body.angular.z);
+    }*/
 
     // Control approach:
     // 1. We consider the roll and pitch commands as desired accelerations in the base_stabilized frame,

@@ -13,7 +13,7 @@
   <arg name="x" default="0.0"/>
   <arg name="y" default="0.0"/>
   <arg name="z" default="0.3"/>
-
+  <arg name="yaw" default="0.0"/>
   <arg name="use_ground_truth_for_tf" default="true" />
   <arg name="use_ground_truth_for_control" default="true" />
   <arg name="use_pose_estimation" if="$(arg use_ground_truth_for_control)" default="false"/>
@@ -82,6 +82,7 @@
            -x $(arg x)
            -y $(arg y)
            -z $(arg z)
+           -Y $(arg yaw)
            -model $(arg name)"
         respawn="false" output="screen"/>
 

@@ -49,7 +49,7 @@ public:
     nh.param<double>("dist_tolerance", dist_tolerance_, 0.05);
     nh.param<double>("yaw_tolerance", yaw_tolerance_, 0.35);
     nh.param<double>("time_in_tolerance", time_in_tolerance_, 1.0);
-    nh.param<double>("action_frequency", frequency_, 10.0);
+    nh.param<double>("action_frequency", frequency_, 10);
     nh.param<double>("action_timeout", action_timeout_, 30.0);
   }
 

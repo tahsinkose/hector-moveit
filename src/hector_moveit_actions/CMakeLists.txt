@@ -20,10 +20,8 @@ catkin_package(
 include_directories(${catkin_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS})
 
 add_executable(trajectory_executer src/trajectory_executer.cpp)
-add_executable(trajectory_controller src/aggressive_trajectory_executer.cpp)
 
 target_link_libraries(trajectory_executer ${catkin_LIBRARIES})
-target_link_libraries(trajectory_controller ${catkin_LIBRARIES})
 
 add_dependencies(
   trajectory_executer

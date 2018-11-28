@@ -13,7 +13,7 @@
     <!-- Kinect -->
     <xacro:include filename="$(find hector_sensors_description)/urdf/kinect_camera.urdf.xacro" />
     <xacro:kinect_camera name="camera" parent="base_link">
-      <origin xyz="0.0 0.0 -0.1" rpy="0 0 0"/>
+      <origin xyz="0.23 0.0 -0.1" rpy="0 0 0"/>
     </xacro:kinect_camera>
     
 </robot>

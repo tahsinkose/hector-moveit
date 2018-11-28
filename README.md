@@ -35,18 +35,23 @@ Exploration version 2 is explained in further detail in the Development log. In 
 ### Exploration v3
 
 [![Orchard Exploration v3](http://img.youtube.com/vi/-Hrpk1CQATs/0.jpg)](https://www.youtube.com/watch?v=-Hrpk1CQATs "Orchard Exploration Version 3")
-In this version, the last proposed feature is implemented, i.e. there is a grid heuristics in which the drone does not navigate back into the cells that it previously visited. I have seen a inversely linear relation between the grid size and exploration percentage in 10 minutes. For example, for a 25x25 grid, the exploration rate was at most 32% whereas, in 15x15 case it boosted up to 37% degrees. In the final case, 13x13 grid allowed the drone to explore 40.7% of the volume in 10 minutes. With much more advanced heuristics, it is possible to increase this number.
+
+In this version, the last proposed feature is implemented, i.e. there is a grid heuristics in which the drone does not navigate back into the cells that it previously visited. I have observed an inversely linear relation between the grid size and exploration percentage in 10 minutes. For example, for a 25x25 grid, the exploration rate was at most 32% whereas, in 15x15 case it boosted up to 37% degrees. In the final case, 13x13 grid allowed the drone to explore 40.7% of the volume in 10 minutes. With much more advanced heuristics, it is possible to increase this number.
 
 Consequently, a new RViz panel for Exploration stack is developed in which the grid can be interactively inspected and the exploration rate can be observed. In future, there might be some user interface logic for particular areas to be investigated, but in the foreseeable future it is not on the To-Do list.
 
-<img src="/images/orchard_exploration_v3_gui.png" alt="Exploration GUI" width="435" height="435"/>
-<img src="/images/orchard_exploration_v3_gui2.png" alt="Exploration GUI" width="435" height="435"/>
+<img src="/images/orchard_exploration_v3_gui.png" alt="Exploration GUI" width="435" height="435"/><img src="/images/orchard_exploration_v3_gui2.png" alt="Exploration GUI" width="435" height="435"/>
 
 In order to welcome newcomers, status quo of simulation is the best advertisement. For further detail, go to Development log.
- 
+
+### Object Detection v1
+It has officially started! I will try to implement a ROS node that detects and collects valuable information (centers in 3D WCS, their dimensions) of trees and fruits. Current candidate is YOLO. I aim to produce a custom dataset consisting of snapshots from simulation view.
+
 ## References
 <a href="https://github.com/wilselby/ROS_quadrotor_simulator">ROS Quadrotor Simulator by Wil Selby</a>
 
 <a href="https://github.com/AlessioTonioni/Autonomous-Flight-ROS">Autonomous Flight by Alessio Tonioni</a>
+
+<a href="https://github.com/RiccardoGrin/darknet">Darknet Retraining with Custom Dataset by Riccardo Grin</a>
 
 _**Note**: If you know other similar projects that have the same context with the proposed ability, please inform me so that I can list them as a reference._

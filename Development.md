@@ -10,12 +10,12 @@ Two items above stresses important points of the project. Firstly, there are var
 ---
 
 ### Perception
-From the system design point of view, there is only a Kinect2 sensor attached to the base of Quadcopter with downward orientation. In fact, any stereo camera with a good PointCloud2 generation ability would be adequate. 
+From the system design point of view, there is only a Kinect2 sensor attached to the base of Quadcopter with front-facing orientation. In fact, any stereo camera with a good PointCloud2 generation ability would be adequate. 
 <a href="http://docs.ros.org/indigo/api/moveit_tutorials/html/doc/pr2_tutorials/planning/src/doc/perception_configuration.html">MoveIt! Perception</a> requires sensors that produce either Point Cloud or Depth Image of the environment. There is no need to provide both sensory input to the pipeline, since either would suffice. When this configuration is made, OccupanyMapUpdater Plugin of MoveIt! constructs an <a href="http://octomap.github.io/">OctoMap</a> representation of the environment as robot moves. OctoMap is only a mapping approach, it is **not** a **SLAM** method. It is an efficient way of storing and manipulating 3D maps. In fact, this is reasonable for MoveIt! since it does not have to localize its robots because it was mainly developed for manipulators. For simulation purposes at the moment, it is not yet required to have Localization ability. But in the future, a real application definitely would require one. 
 
 As Wil Selby had briefly illustrated in its <a href="https://www.wilselby.com/research/ros-integration/3d-mapping-navigation/">3D Navigation Tutorial</a>, <a href="http://introlab.github.io/rtabmap/RTAB-Map"> RTAB-Map</a> is a good SLAM candidate. It optionally requires an additional Laser Scanner for better performance. In <a href="http://wiki.ros.org/rtabmap_ros/Tutorials/SetupOnYourRobot">SetupOnYourRobot</a> webpage, it is denoted that there should be at least a Kinect-like sensor. Therefore, it is a Stereo camera (RGB-D) SLAM approach. There is a <a href="https://github.com/Notou/Moveit-External-Octomap-Updater">custom Octomap updater plugin for MoveIt!</a> written by @Notou, which enables the OctoMap output from RTAB-Map to be directly fed into MoveIt! Pipeline.
 
-In below, related papers are added for future reference. More will be added (hopefully) as project proceeds.
+In the References part, related papers are added for future reference. More will be added (hopefully) as project proceeds.
 
 ---
 
@@ -31,7 +31,7 @@ After determining what to do, the next task was to develop (if there exists alre
 #### Orchard fruit picking with static environment generation
 In order to avoid any confusion, static relates in here to simple world files, i.e. all the models seen in the environment (except the quadcopter) are generated beforehand through their declaration in the world file. This reduces a lot of complexity with respect to the above approach. However, the apples are not distinct entities in this case; so, fruit-picking might be more difficult. One work-around that I can thought of is to spawn instantaneous distinct apples at the location where a fruit is detected to be picked. 
 
-All the models and world files are separated into a brand-new package. Therefore, they can be used in any project with agricultural purposes. In future, it is aimed to create new ones particular to the tasks and improve current ones with further details. I mentioned about the problematic tree generation with fruits in the previous section. That's why I dived into Blender and created my own apple tree model and exported COLLADA file to use in Gazebo. One problem with the Blender COLLADA generation is that it drops transparency of meshes during exportation process. **[This is a global problem, many developers from the communities of Unity and other game development frameworks reported that, but I couldn't find a way out. Since I'm a too newbie to Blender and 3D modelling, I gave up and looked for work-arounds]**. Therefore all meshes of the tree had a black background. I have resolved that with the Gazebo's own transparency support. Even with a very small number (e.g. 1e-5), black background vanishes and all remains is the tree itself. Nevertheless, tree has a tiny amount of transparency that can be distinguished when looked from very close distance.
+All the models and world files are separated into a brand-new package. Therefore, they can be used in any project with agricultural purposes. In future, it is aimed to create new ones particular to the tasks and improve current ones with further details. I mentioned about the problematic tree generation with fruits in the previous section. That's why I dived into Blender and created my own apple tree model and exported COLLADA file to use in Gazebo. One problem with the Blender COLLADA generation is that it drops transparency of meshes during exportation process. **[This is a global problem, many developers from the communities of Unity and other game development frameworks reported that, but I couldn't find a way out. Since I'm a fresh newbie to Blender and 3D modelling, I gave up and looked for work-arounds]**. Therefore all meshes of the tree had a black background. I have resolved that with the Gazebo's own transparency support. Even with a very small number (e.g. 1e-5), black background vanishes and all remains is the tree itself. Nevertheless, tree has a tiny amount of transparency that can be distinguished when looked from very close distance.
 
 <img src="/images/garden4.jpg" alt="Garden View" width="435" height="435"/><img src="/images/garden5.jpg" alt="Garden View" width="435" height="435"/>
 <img src="/images/garden6.jpg" alt="Garden View" width="435" height="435"/><img src="/images/garden7.jpg" alt="Garden View" width="435" height="435"/>
@@ -57,6 +57,13 @@ After the simulation environments are ready, first goal was to properly, safely 
 - [x] Velocity controller produces motion commands according to whole trajectory instead of separate waypoints.
 
 - [ ] A Grid-based frontier approach that uses the frontiers chosen randomly with respect to their distances is determined to be implemented for Version 3. 
+
+#### Version 3
+- [x] A Grid-based frontier approach that uses the frontiers chosen randomly with respect to their distances is implemented.
+
+- [x] Metrics are computed with respect to time/exploration rate experiments.
+### Tree & Fruit Detection
+This part constitutes Phase 2 of the project. I have started with famous Inception image detector without making any configurations/retraining, briefly nothing. Knowing it was trained for 1000 classes, the results are considerably optimistic. At close ranges to trees and fruits, model could achieve to predict that there is an agricultural context by outputting pineapple, apricot, brocoli, flowerpot and etc. However the aim of this project regarding to this phase is to detect and collect 3D world coordinates and respective sizes of the instances of interest classes. Having formulated the problem, the solution immediately follows. An object detector that executes inference as bounding boxes conforming to the soft real-time constraints in the worst case.
 
 ### References
 * <a href="https://ocw.mit.edu/courses/aeronautics-and-astronautics/16-412j-cognitive-robotics-spring-2005/projects/1aslam_blas_repo.pdf">SLAM for Dummies</a>

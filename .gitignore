@@ -35,6 +35,6 @@
 
 build
 devel
+logs
 .vscode
-src/rosconsole
-src/roscpp
+.catkin_tools

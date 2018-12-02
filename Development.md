@@ -44,7 +44,8 @@ Resolution of the trees might be a problem during the fruit detection. I will de
 After the simulation environments are ready, first goal was to properly, safely and of course autonomously navigate in the orchard so as to map it comprehensively. Current architecture uses MoveIt! and <a href="http://docs.ros.org/kinetic/api/hector_quadrotor_actions/html/classhector__quadrotor__actions_1_1PoseActionServer.html">Pose Action Server</a> for simultaneous planning and mapping. MoveIt! has a simple motion planning pipeline that can be used to integrate Octomap data generated via Kinect2 Pointcloud input and motion planner plugins provided by OMPL. Furthermore, one can also implement an Execute Path Service plugin as a controller that MoveIt! can talk to. For now, I only use the planners to extract valid paths to the goal state and feed them into Pose Action Server special to the Hector Quadcopter platform. In future, I'm aiming to provide a generic controller than can generalize over different platforms.
 
 #### Version 1
-[![Orchard Exploration](http://img.youtube.com/vi/ZWn9N9Y_tb8/0.jpg)](https://www.youtube.com/watch?v=ZWn9N9Y_tb8 "Orchard Exploration") As it can be seen, it successfully replans after noticing the obstacles popped out in the path of latched trajectory. It is definitely a dynamic collision avoidance routine and can respond under 1 second. My aim for version 2 is to implement:
+[![Orchard Exploration](http://img.youtube.com/vi/ZWn9N9Y_tb8/0.jpg)](https://www.youtube.com/watch?v=ZWn9N9Y_tb8 "Orchard Exploration") 
+As it can be seen, it successfully replans after noticing the obstacles popped out in the path of latched trajectory. It is definitely a dynamic collision avoidance routine and can respond under 1 second. My aim for version 2 is to implement:
 * An orientation fixer for the Quadcopter. Since Kinect (or any other stereo camera) does not have 360 degree of FOV, the velocity vector and the orientation of the camera should be equal. Otherwise, drone might not see its front exactly; thus couldn’t notice the obstacle in front and thinks the latched trajectory is still valid, whereas it isn’t.
 
 * A velocity controller or directly using existing alternatives, if any. By this, motions will be much smoother with respect to position control.
@@ -56,12 +57,10 @@ After the simulation environments are ready, first goal was to properly, safely 
 
 - [x] Velocity controller produces motion commands according to whole trajectory instead of separate waypoints.
 
-- [ ] A Grid-based frontier approach that uses the frontiers chosen randomly with respect to their distances is determined to be implemented for Version 3. 
+- [x] A Grid-based frontier approach that uses the frontiers chosen randomly with respect to their distances is determined to be implemented for Version 3. 
 
 #### Version 3
-- [x] A Grid-based frontier approach that uses the frontiers chosen randomly with respect to their distances is implemented.
-
-- [x] Metrics are computed with respect to time/exploration rate experiments.
+-  [x] Metrics are computed with respect to time/exploration rate experiments.
 ### Tree & Fruit Detection
 This part constitutes Phase 2 of the project. I have started with famous Inception image detector without making any configurations/retraining, briefly nothing. Knowing it was trained for 1000 classes, the results are considerably optimistic. At close ranges to trees and fruits, model could achieve to predict that there is an agricultural context by outputting pineapple, apricot, brocoli, flowerpot and etc. However the aim of this project regarding to this phase is to detect and collect 3D world coordinates and respective sizes of the instances of interest classes. Having formulated the problem, the solution immediately follows. An object detector that executes inference as bounding boxes conforming to the soft real-time constraints in the worst case.
 

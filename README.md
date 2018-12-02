@@ -1,18 +1,31 @@
 ### Getting Started
 This project depends on MoveIt! framework and Gazebo 9. In order to get all necessary packages, run the command:
 
-`sudo apt-get install ros-kinetic-moveit*`
+```Shell
+sudo apt-get install ros-kinetic-moveit* 
+```
 
-`sudo apt-get install gazebo9 libgazebo9-dev ros-kinetic-gazebo9*`
+```Shell
+sudo apt-get install gazebo9 libgazebo9-dev ros-kinetic-gazebo9*
+```
 
 After that, the repository should be cloned with all its submodules:
 
-`git clone --recurse-submodules https://github.com/tahsinkose/hector-moveit.git`
+```Shell
+git clone --recurse-submodules https://github.com/tahsinkose/hector-moveit.git
+```
 
 Since, Github does not support partial submoduling yet, the package `hector_gazebo_termal_camera` should be deleted after above command is executed.
 
-Finally, execute `catkin_make` to build the project. Then launch `roslaunch hector_moveit_gazebo orchyard_navigation.launch` and `roslaunch hector_moveit_exploration explore.launch` respectively.
+In order to build the project execute `catkin build`. Since there are roughly 30 packages, build time may be around 5 minutes.  
+To run the project, launch consecutively: 
+```Shell
+roslaunch hector_moveit_gazebo orchyard_navigation.launch
+```
 
+```Shell
+roslaunch hector_moveit_exploration explore.launch
+```
 # hector-moveit
 Hector Quadrotor with MoveIt! Motion Planning Framework.
 

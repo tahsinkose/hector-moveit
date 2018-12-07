@@ -1,12 +1,9 @@
 ### Getting Started
 This project depends on MoveIt! framework and Gazebo 9. In order to get all necessary packages, run the commands:
 
-```Shell
-sudo apt-get install ros-kinetic-moveit* 
-```
 
 ```Shell
-sudo apt-get install gazebo9 libgazebo9-dev ros-kinetic-gazebo9*
+sudo apt-get install gazebo9 libgazebo9-dev ros-melodic-gazebo9*
 ```
 
 ```Shell

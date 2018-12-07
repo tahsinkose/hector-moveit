@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(hector_moveit_exploration)
-set (CMAKE_CXX_STANDARD 11)
+
+set(CMAKE_CXX_FLAGS "-std=c++11")
 
 find_package(catkin REQUIRED COMPONENTS 
     roscpp 
@@ -25,6 +26,6 @@ endif()
 include_directories(include ${OCTOMAP_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS})
 
 add_executable(hector_explorer src/Explorer.cpp src/explorer_node.cpp)
-target_compile_options(hector_explorer PRIVATE ${OpenMP_FLAGS})
+target_compile_options(hector_explorer PRIVATE ${OpenMP_FLAGS} ${CMAKE_CXX_FLAGS})
 target_link_libraries(hector_explorer ${OCTOMAP_LIBRARIES} ${catkin_LIBRARIES} ${Boost_LIBRARIES} ${OpenMP_LIBS})
 add_dependencies(hector_explorer hector_uav_msgs_generate_messages hector_moveit_actions_generate_messages)

@@ -203,8 +203,8 @@ void Quadrotor::findFrontier()
             });*/
         std::vector<int> indices(candidate_frontiers.size());
         if(candidate_frontiers.size() > 10){
-            
-            std::iota(indices.begin(),indices.end(),0);
+            for(int i=0;i<indices.size();i++)
+                indices[i] = i;
             std::random_shuffle(indices.begin(),indices.end());
             indices.erase(indices.begin()+10,indices.end()); 
         }

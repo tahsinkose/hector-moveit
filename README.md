@@ -1,14 +1,13 @@
 ### Getting Started
 This project depends on MoveIt! framework and Gazebo 9. In order to get all necessary packages, run the command:
 
-```Shell
-sudo apt-get install ros-kinetic-moveit* 
-```
 
 ```Shell
 sudo apt-get install gazebo9 libgazebo9-dev ros-kinetic-gazebo9*
 ```
-
+```Shell
+rosdep install --from-paths src --ignore-src -r -y --rosdistro kinetic
+```
 After that, the repository should be cloned with all its submodules:
 
 ```Shell
